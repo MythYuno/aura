@@ -10,6 +10,7 @@ export const Card = ({
   onClick,
   as: Component = 'div',
   delay = 0,
+  interactive = true,
   ...props
 }) => {
   const paddings = {
@@ -23,7 +24,7 @@ export const Card = ({
 
   const baseClass = cn(
     'relative rounded-2xl border border-bd-1 overflow-hidden',
-    'transition-colors duration-300',
+    'transition-colors duration-500',
     glass && 'bg-bg-2 backdrop-blur-2xl',
     spotlight && 'spotlight hover:border-bd-2',
     paddings[padding],
@@ -32,25 +33,21 @@ export const Card = ({
   );
 
   const content = <>{children}</>;
-
-  if (Component === 'motion.div' || delay) {
-    return (
-      <motion.div
-        className={baseClass}
-        onClick={onClick}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
-        {...props}
-      >
-        {content}
-      </motion.div>
-    );
-  }
+  const hoverProps = interactive ? { whileHover: { y: -3, transition: { type: 'spring', stiffness: 400, damping: 28 } } } : {};
+  const tapProps = onClick ? { whileTap: { scale: 0.985, transition: { duration: 0.15 } } } : {};
 
   return (
-    <Component className={baseClass} onClick={onClick} {...props}>
+    <motion.div
+      className={baseClass}
+      onClick={onClick}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
+      {...hoverProps}
+      {...tapProps}
+      {...props}
+    >
       {content}
-    </Component>
+    </motion.div>
   );
 };

@@ -179,7 +179,7 @@ const WelcomeStep = ({ title }) => (
       </svg>
     </motion.div>
     <p className="text-[11px] uppercase tracking-widest text-ok text-center font-semibold mb-3">Benvenuto in</p>
-    <h1 className="text-[36px] font-light text-center leading-[1.05] tracking-[-0.035em] mb-4">
+    <h1 className="font-hero text-[52px] text-center leading-[0.95] mb-4">
       Il tuo denaro,<br /><span className="font-medium text-gradient-ok">finalmente chiaro</span>
     </h1>
     <p className="text-[14px] text-fg-3 text-center leading-relaxed max-w-sm mx-auto">
@@ -213,7 +213,7 @@ const WelcomeStep = ({ title }) => (
 const NameStep = ({ form, f, next }) => (
   <>
     <p className="text-[11px] uppercase tracking-widest text-ok font-semibold mb-3">Step 1 di 3</p>
-    <h1 className="text-[32px] font-light leading-[1.05] tracking-[-0.03em] mb-3">
+    <h1 className="font-hero text-[44px] leading-[0.95] mb-3">
       Come ti chiami?
     </h1>
     <p className="text-[14px] text-fg-3 mb-8">Il nome che vedrai nel saluto.</p>
@@ -232,7 +232,7 @@ const NameStep = ({ form, f, next }) => (
 const SalaryStep = ({ form, f, next }) => (
   <>
     <p className="text-[11px] uppercase tracking-widest text-ok font-semibold mb-3">Step 2 di 3</p>
-    <h1 className="text-[32px] font-light leading-[1.05] tracking-[-0.03em] mb-3">
+    <h1 className="font-hero text-[44px] leading-[0.95] mb-3">
       Il tuo <span className="font-medium text-gradient-ok">stipendio</span>
     </h1>
     <p className="text-[14px] text-fg-3 mb-8">Netto mensile, in euro.</p>
@@ -253,7 +253,7 @@ const SalaryStep = ({ form, f, next }) => (
 const DayStep = ({ form, f, next }) => (
   <>
     <p className="text-[11px] uppercase tracking-widest text-ok font-semibold mb-3">Step 3 di 3</p>
-    <h1 className="text-[32px] font-light leading-[1.05] tracking-[-0.03em] mb-3">
+    <h1 className="font-hero text-[44px] leading-[0.95] mb-3">
       Giorno di reset
     </h1>
     <p className="text-[14px] text-fg-3 mb-8">Il giorno del mese in cui ti arriva lo stipendio (1-28).</p>

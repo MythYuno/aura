@@ -18,7 +18,7 @@ export const HomeScreen = ({ store }) => {
   const viceSpend = pTxs.filter((t) => t.cat === 'vices').reduce((a, t) => a + realCost(t), 0);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-tut="home-grid">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger" data-tut="home-grid">
       {widgets.includes('balance') && (
         <div data-tut="hero">
           <BalanceHero

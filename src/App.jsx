@@ -118,8 +118,6 @@ export default function App() {
           />
         </div>
 
-        <div className="noise" />
-
         <div className="flex h-full relative z-10">
           {/* Desktop sidebar */}
           {isDesktop && (
@@ -238,10 +236,10 @@ export default function App() {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={tab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {tab === 'home' && <HomeScreen store={store} />}
                     {tab === 'planner' && <PlannerScreen store={store} />}
@@ -284,8 +282,9 @@ export default function App() {
                 <motion.button
                   data-tut="fab"
                   onClick={() => { haptic('medium'); setAddOpen(true); }}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-14 h-14 -mt-4 rounded-2xl flex items-center justify-center text-black"
+                  whileTap={{ scale: 0.88 }}
+                  whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+                  className="w-14 h-14 -mt-4 rounded-2xl flex items-center justify-center text-black fab-float"
                   style={{
                     background: 'linear-gradient(135deg, var(--ok), var(--ok-dim))',
                     boxShadow: '0 8px 24px var(--accent-glow), 0 0 0 4px var(--bg)',
@@ -318,7 +317,7 @@ export default function App() {
         )}
 
         {/* Sheets */}
-        <AddExpenseSheet open={addOpen} onClose={() => setAddOpen(false)} cats={store.cats} addTx={store.addTx} />
+        <AddExpenseSheet open={addOpen} onClose={() => setAddOpen(false)} store={store} />
 
         {/* Tutorial */}
         <AnimatePresence>

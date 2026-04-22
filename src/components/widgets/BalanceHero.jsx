@@ -26,7 +26,7 @@ export const BalanceHero = ({ dailyBudget, remaining, daysLeft, totalSpent, free
           isOver ? 'bg-red/10 text-red border border-red/20' : 'bg-ok/10 text-ok border border-ok/20'
         )}>
           <span className="relative w-2 h-2 rounded-full" style={{ background: isOver ? 'var(--red)' : 'var(--ok)' }}>
-            <span className="absolute inset-0 rounded-full animate-pulse-soft" style={{ background: isOver ? 'var(--red)' : 'var(--ok)' }} />
+            <span className="absolute inset-0 rounded-full live-pulse" style={{ background: isOver ? 'var(--red)' : 'var(--ok)' }} />
           </span>
           {isOver ? 'Attenzione alle spese' : 'Tutto sotto controllo'}
         </span>
@@ -35,15 +35,15 @@ export const BalanceHero = ({ dailyBudget, remaining, daysLeft, totalSpent, free
       <p className="text-[13px] text-fg-3 mb-2 relative">Disponibile oggi</p>
 
       <motion.h1
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          'text-[64px] sm:text-[80px] font-extralight leading-[0.9] tracking-[-0.045em] relative text-gradient-ok',
+          'font-hero text-[72px] sm:text-[92px] leading-[0.88] relative text-gradient-ok',
           privacy && 'privacy-blur'
         )}
       >
-        <span className="text-4xl opacity-60 font-light mr-1 align-top leading-none">€</span>
+        <span className="text-4xl sm:text-5xl opacity-60 mr-1 align-top leading-none" style={{ letterSpacing: 0 }}>€</span>
         <NumberTicker value={dailyBudget} decimals={2} />
       </motion.h1>
 
