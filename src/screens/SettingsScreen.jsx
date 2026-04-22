@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Palette, Moon, Sun, SunMoon, LayoutGrid, Download, Upload, Trash2, HelpCircle, ChevronRight, Check, Plus, X } from 'lucide-react';
+import { Palette, LayoutGrid, Download, Upload, Trash2, HelpCircle, ChevronRight, Check, Plus, X } from 'lucide-react';
 import { Card } from '../components/ui/Card.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Sheet } from '../components/ui/Sheet.jsx';
@@ -11,20 +11,18 @@ import { exportCSV, parseCSVImport } from '../lib/csv.js';
 import { availableIcons, availableColors } from '../data/categories.js';
 import { allWidgets } from '../data/widgets.js';
 import { themeList } from '../data/themes.js';
-import { useAnimatedThemeToggle } from '../hooks/useTheme.js';
 
 export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
   const {
     name, setName, salary, setSalary, resetDay, setResetDay,
     currentSavings, setCurrentSavings, cats, setCats, widgets, setWidgets,
-    theme, setTheme, themeId, setThemeId, txs, importTxs,
+    themeId, setThemeId, txs, importTxs,
   } = store;
 
   const [showWSet, setShowWSet] = useState(false);
   const [showCatEdit, setShowCatEdit] = useState(null);
   const [importPreview, setImportPreview] = useState(null);
   const fileInputRef = useRef(null);
-  const toggleMode = useAnimatedThemeToggle(setTheme);
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
@@ -124,35 +122,6 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
                 </div>
                 <div className={cn('text-[13px] font-bold mb-0.5', isSel && 'text-accent')}>{t.name}</div>
                 <div className="text-[10px] text-fg-4 leading-tight">{t.description}</div>
-              </motion.button>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* Color mode */}
-      <Card padding="md" delay={0.15}>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Modalità Colore</div>
-        <div className="flex gap-1.5">
-          {[
-            { v: 'dark', l: 'Scuro', Icon: Moon },
-            { v: 'light', l: 'Chiaro', Icon: Sun },
-            { v: 'auto', l: 'Auto', Icon: SunMoon },
-          ].map((t) => {
-            const Ico = t.Icon;
-            const isSel = theme === t.v;
-            return (
-              <motion.button
-                key={t.v}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => { haptic('light'); toggleMode(t.v, e); }}
-                className={cn(
-                  'flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all',
-                  isSel ? 'bg-accent/10 border-accent/20' : 'bg-glass border-glass-bd hover:border-glass-bd-2'
-                )}
-              >
-                <Ico size={16} className={isSel ? 'text-accent' : 'text-fg-3'} />
-                <span className={cn('text-[11px] font-semibold', isSel ? 'text-accent' : 'text-fg-3')}>{t.l}</span>
               </motion.button>
             );
           })}

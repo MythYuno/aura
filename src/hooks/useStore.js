@@ -29,7 +29,7 @@ export const useStore = () => {
   const [celebrated, setCelebrated] = useState(stored?.celebrated || {});
 
   const [theme, setTheme] = useState(stored?.theme || 'dark');
-  const [themeId, setThemeId] = useState(stored?.themeId || 'aurora');
+  const [themeId, setThemeId] = useState(stored?.themeId || 'acid');
   const [privacy, setPrivacy] = useState(false);
   const [tutorialSeen, setTutorialSeen] = useState(stored?.tutorialSeen || false);
 

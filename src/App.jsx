@@ -39,7 +39,7 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
 
-  useTheme(store.themeId, store.theme);
+  useTheme(store.themeId);
 
   useEffect(() => {
     if (store.booted && !store.tutorialSeen && store.txs.length === 0) {
