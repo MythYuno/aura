@@ -36,7 +36,7 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
 
   return (
     <Sheet open={open} onClose={() => { reset(); onClose(); }} title="Nuova Spesa">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-20">
         {/* Amount */}
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Importo totale (€)</label>
@@ -148,8 +148,17 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
 
-        <Button variant="primary" size="xl" onClick={handleSubmit} haptic="success" className="mt-2">
+      {/* Sticky submit */}
+      <div
+        className="sticky bottom-0 left-0 right-0 -mx-5 px-5 pt-3 pb-3"
+        style={{
+          background: 'linear-gradient(to top, var(--bg) 70%, transparent)',
+          paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+        }}
+      >
+        <Button variant="primary" size="xl" onClick={handleSubmit} haptic="success" className="w-full">
           Registra Spesa
         </Button>
       </div>

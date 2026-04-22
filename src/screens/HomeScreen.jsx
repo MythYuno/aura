@@ -1,4 +1,5 @@
 import { BalanceHero } from '../components/widgets/BalanceHero.jsx';
+import { SmartLearningCard } from '../components/widgets/SmartLearningCard.jsx';
 import { ForecastCard } from '../components/widgets/ForecastCard.jsx';
 import { CategoriesRing } from '../components/widgets/CategoriesRing.jsx';
 import { StreakCard } from '../components/widgets/StreakCard.jsx';
@@ -13,6 +14,7 @@ export const HomeScreen = ({ store }) => {
     forecast, weeklyInsight, streakData, upcomingDeductions, extraThisPeriod,
     pendingCredits, totalPendingCredit, totalReceivedCredit, markCreditReceived,
     quickActions, addTx, periodStart, dayOfPeriod, daysInPeriod, insights,
+    learningConfidence, learningLevel, smartSuggestions, applySmart,
   } = store;
 
   const viceSpend = pTxs.filter((t) => t.cat === 'vices').reduce((a, t) => a + realCost(t), 0);
@@ -33,6 +35,15 @@ export const HomeScreen = ({ store }) => {
             privacy={privacy}
           />
         </div>
+      )}
+
+      {widgets.includes('smart-learning') && (
+        <SmartLearningCard
+          learningConfidence={learningConfidence}
+          learningLevel={learningLevel}
+          smartSuggestions={smartSuggestions}
+          applySmart={applySmart}
+        />
       )}
 
       {widgets.includes('quickactions') && <QuickActionsBar quickActions={quickActions} cats={cats} addTx={addTx} />}

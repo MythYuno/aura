@@ -7,12 +7,17 @@ const STEPS = [
   {
     target: 'hero',
     title: 'Budget giornaliero',
-    text: 'Quanto puoi spendere oggi. Si ricalcola automaticamente.',
+    text: 'Quanto puoi spendere oggi. Si ricalcola automaticamente ad ogni spesa.',
   },
   {
     target: 'fab',
     title: 'Aggiungi spesa',
     text: 'Tocca il + per registrare una spesa. Veloce e offline.',
+  },
+  {
+    target: null,
+    title: 'AURA impara da te',
+    text: 'Più spese registri, più capisce le tue abitudini. Dopo qualche settimana ti suggerirà come distribuire il budget in base ai tuoi pattern reali.',
   },
   {
     target: 'nav-planner',
@@ -32,7 +37,7 @@ const STEPS = [
   {
     target: null,
     title: 'Pronto.',
-    text: 'I tuoi dati stanno solo sul tuo dispositivo.',
+    text: 'I tuoi dati stanno solo sul tuo dispositivo. Zero cloud.',
   },
 ];
 

@@ -1,10 +1,11 @@
 export const defaultWidgets = [
-  'balance', 'forecast', 'categories-ring', 'streak', 'heatmap',
+  'balance', 'smart-learning', 'forecast', 'categories-ring', 'streak', 'heatmap',
   'upcoming', 'chart', 'insights', 'quickactions', 'credits', 'dreams',
 ];
 
 export const allWidgets = [
   { id: 'balance', label: 'Bilancio (Hero)', icon: 'Wallet' },
+  { id: 'smart-learning', label: 'AURA impara', icon: 'Brain' },
   { id: 'forecast', label: 'Previsione Fine Mese', icon: 'Target' },
   { id: 'insights', label: 'Insights Settimanali', icon: 'Brain' },
   { id: 'streak', label: 'Streak', icon: 'Flame' },

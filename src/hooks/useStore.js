@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { load, save } from '../lib/storage.js';
 import { realCost, uid, parseNum } from '../lib/format.js';
-import { computeSmartSuggestions, computeInsights } from '../lib/intelligence.js';
+import { computeSmartSuggestions, computeInsights, computeLearningConfidence, getLearningLevel, applySmartAllocation, compute503020 } from '../lib/intelligence.js';
 import { haptic } from '../lib/haptic.js';
 import { defaultCats } from '../data/categories.js';
 import { defaultWidgets } from '../data/widgets.js';
@@ -87,6 +87,19 @@ export const useStore = () => {
 
   const smartSuggestions = useMemo(() => computeSmartSuggestions(txs, cats, 3, salary), [txs, cats, salary]);
   const insights = useMemo(() => computeInsights(txs, cats), [txs, cats]);
+  const learningConfidence = useMemo(() => computeLearningConfidence(txs), [txs]);
+  const learningLevel = useMemo(() => getLearningLevel(learningConfidence), [learningConfidence]);
+
+  const applySmart = () => {
+    if (!smartSuggestions) return;
+    haptic('success');
+    setCats((p) => applySmartAllocation(p, smartSuggestions));
+  };
+
+  const apply503020 = () => {
+    haptic('success');
+    setCats((p) => applySmartAllocation(p, compute503020(p)));
+  };
 
   const forecast = useMemo(() => {
     if (dayOfPeriod < 2 || freeBudget <= 0) return null;
@@ -253,6 +266,7 @@ export const useStore = () => {
     fixedMonthly, subscriptionsMonthly, dreamAlloc, bufferAmt,
     extraThisPeriod, totalLocked, freeBudget, pTxs, totalSpent, remaining,
     dailyBudget, isOver, burnPct, smartAlloc, smartSuggestions, insights,
+    learningConfidence, learningLevel, applySmart, apply503020,
     forecast, upcomingDeductions, weeklyInsight, streakData, monthsHistory,
     pendingCredits, totalPendingCredit, totalReceivedCredit,
     addTx, deleteTx, markCreditReceived,
