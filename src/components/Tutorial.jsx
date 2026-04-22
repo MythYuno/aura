@@ -108,26 +108,29 @@ export const Tutorial = ({ onDone }) => {
         )}
       </svg>
 
-      {/* Tooltip card — always docked at bottom on mobile, centered on desktop */}
+      {/* Tooltip card — clamped inside viewport on all screens */}
       <motion.div
         key={step}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed left-1/2 -translate-x-1/2 pointer-events-auto z-[10001]"
+        className="fixed pointer-events-auto z-[10001]"
         style={{
-          bottom: 'max(20px, env(safe-area-inset-bottom))',
-          width: 'min(380px, calc(100vw - 24px))',
+          bottom: 'max(16px, env(safe-area-inset-bottom))',
+          left: 'max(12px, env(safe-area-inset-left))',
+          right: 'max(12px, env(safe-area-inset-right))',
+          maxWidth: 400,
+          marginInline: 'auto',
         }}
       >
         <div
-          className="rounded-3xl p-5"
+          className="rounded-3xl p-4"
           style={{
-            background: 'color-mix(in srgb, var(--bg) 92%, transparent)',
-            backdropFilter: 'blur(30px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+            background: 'color-mix(in srgb, var(--bg) 94%, transparent)',
+            backdropFilter: 'blur(20px) saturate(160%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(160%)',
             border: '1px solid var(--accent-20)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--accent-glow)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
           }}
         >
           {/* Header row */}

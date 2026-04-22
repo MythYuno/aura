@@ -162,10 +162,10 @@ const SalaryStep = ({ value, savings, onChange, onSavingsChange, onNext, canNext
     <div className="flex flex-col gap-3">
       <div>
         <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-fg-3 mb-2">Stipendio netto</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-3 font-semibold text-lg">€</span>
+        <div className="inp flex items-center gap-2 py-0 pr-4 pl-4">
+          <span className="text-fg-3 font-semibold text-lg select-none">€</span>
           <input
-            className="inp pl-10 text-lg py-4 font-mono"
+            className="flex-1 bg-transparent border-none outline-none text-lg py-4 font-mono text-fg placeholder:text-fg-4"
             type="text"
             inputMode="decimal"
             value={value}
@@ -178,10 +178,10 @@ const SalaryStep = ({ value, savings, onChange, onSavingsChange, onNext, canNext
       </div>
       <div>
         <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-fg-3 mb-2">Risparmi attuali (opzionale)</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-3 font-semibold text-lg">€</span>
+        <div className="inp flex items-center gap-2 py-0 pr-4 pl-4">
+          <span className="text-fg-3 font-semibold text-lg select-none">€</span>
           <input
-            className="inp pl-10 text-base py-3.5 font-mono"
+            className="flex-1 bg-transparent border-none outline-none text-base py-3.5 font-mono text-fg placeholder:text-fg-4"
             type="text"
             inputMode="decimal"
             value={savings}
