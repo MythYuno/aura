@@ -6,28 +6,28 @@ export const EmptyState = ({ title, description, action, illustration = 'default
       <svg viewBox="0 0 120 120" className="w-24 h-24">
         <circle cx="60" cy="60" r="50" fill="var(--bg-2)" />
         <circle cx="60" cy="60" r="36" fill="var(--bg-3)" />
-        <circle cx="60" cy="60" r="22" fill="var(--ok)" opacity="0.2" />
+        <circle cx="60" cy="60" r="22" fill="var(--accent)" opacity="0.2" />
       </svg>
     ),
     empty: (
       <svg viewBox="0 0 120 120" className="w-24 h-24">
         <defs>
           <linearGradient id="es1" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--ok)" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="var(--ok)" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.05" />
           </linearGradient>
         </defs>
         <circle cx="60" cy="60" r="45" fill="url(#es1)" />
         <g transform="translate(60 60)">
           <motion.rect
             x="-16" y="-16" width="32" height="32" rx="8"
-            fill="none" stroke="var(--ok)" strokeWidth="2"
+            fill="none" stroke="var(--accent)" strokeWidth="2"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1, delay: 0.2 }}
           />
           <motion.circle
-            cx="0" cy="0" r="5" fill="var(--ok)"
+            cx="0" cy="0" r="5" fill="var(--accent)"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.8, type: 'spring' }}
@@ -49,7 +49,7 @@ export const EmptyState = ({ title, description, action, illustration = 'default
             transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
           />
           <motion.rect
-            x="60" y="65" width="15" height="35" rx="3" fill="var(--ok)"
+            x="60" y="65" width="15" height="35" rx="3" fill="var(--accent)"
             animate={{ height: [35, 55, 35] }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.4 }}
           />
@@ -71,7 +71,7 @@ export const EmptyState = ({ title, description, action, illustration = 'default
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="mb-6">{illustrations[illustration] || illustrations.default}</div>
-      <h3 className="text-lg font-semibold text-fg-1 mb-2">{title}</h3>
+      <h3 className="text-lg font-semibold text-fg mb-2">{title}</h3>
       {description && (
         <p className="text-sm text-fg-3 max-w-sm leading-relaxed">{description}</p>
       )}

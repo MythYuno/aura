@@ -14,7 +14,7 @@ export const Sheet = ({ open, onClose, title, children, className = '' }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.25 }}
                 className="fixed inset-0 bg-black/60 backdrop-blur-md z-[999]"
               />
             </Dialog.Overlay>
@@ -23,22 +23,36 @@ export const Sheet = ({ open, onClose, title, children, className = '' }) => {
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className={`fixed bottom-0 left-0 right-0 z-[1000] max-h-[88vh] bg-bg-1 backdrop-blur-2xl border-t border-bd-2 rounded-t-3xl overflow-auto ${className}`}
-                style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
+                transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+                className={`fixed bottom-0 left-0 right-0 z-[1000] max-h-[88vh] overflow-auto rounded-t-3xl ${className}`}
+                style={{
+                  background: 'var(--bg)',
+                  borderTop: '1px solid var(--glass-bd-2)',
+                  paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+                  boxShadow: '0 -30px 80px rgba(0, 0, 0, 0.5)',
+                }}
               >
-                <div className="sticky top-0 z-10 flex flex-col items-center pt-3 pb-2 bg-bg-1/90 backdrop-blur-xl">
-                  <div className="w-10 h-1 rounded-full bg-fg-5" />
+                {/* Mesh tint at top */}
+                <div className="sticky top-0 z-10 pointer-events-none" style={{ height: 0 }}>
+                  <div
+                    className="absolute inset-x-0 top-0 h-32 pointer-events-none"
+                    style={{ background: 'var(--mesh)', opacity: 0.35, filter: 'blur(30px)' }}
+                  />
                 </div>
-                <div className="px-5 pb-5">
+
+                <div className="sticky top-0 z-20 flex flex-col items-center pt-3 pb-2 backdrop-blur-xl"
+                     style={{ background: 'color-mix(in srgb, var(--bg) 60%, transparent)' }}>
+                  <div className="w-10 h-1 rounded-full" style={{ background: 'var(--fg-5)' }} />
+                </div>
+                <div className="px-5 pb-6 relative">
                   {title && (
                     <div className="flex items-center justify-between mb-5">
-                      <Dialog.Title className="text-xl font-medium tracking-tight">{title}</Dialog.Title>
+                      <Dialog.Title className="text-xl font-semibold tracking-tight">{title}</Dialog.Title>
                       <button
                         onClick={() => { haptic('light'); onClose?.(); }}
-                        className="w-9 h-9 rounded-xl bg-bg-2 border border-bd-1 flex items-center justify-center hover:bg-bg-3 transition-colors"
+                        className="glass w-9 h-9 rounded-xl flex items-center justify-center hover:bg-glass-2 transition-colors"
                       >
-                        <X size={16} className="text-fg-3" />
+                        <X size={16} style={{ color: 'var(--fg-3)' }} />
                       </button>
                     </div>
                   )}

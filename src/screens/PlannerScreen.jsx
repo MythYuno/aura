@@ -48,7 +48,7 @@ export const PlannerScreen = ({ store }) => {
         <div className={cn('flex justify-between items-end mb-5', privacy && 'privacy-blur')}>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1">Entrate</p>
-            <p className="text-[34px] font-light tracking-tight leading-none tnum" style={{ color: 'var(--ok)' }}>
+            <p className="text-[34px] font-light tracking-tight leading-none tnum" style={{ color: 'var(--accent)' }}>
               €<NumberTicker value={salary} decimals={0} />
             </p>
           </div>
@@ -60,14 +60,14 @@ export const PlannerScreen = ({ store }) => {
           </div>
         </div>
 
-        <div className="h-3.5 rounded-full bg-bg-2 flex overflow-hidden mb-4 border border-bd-1">
+        <div className="h-3.5 rounded-full bg-glass flex overflow-hidden mb-4 border border-glass-bd">
           {salary > 0 && (
             <>
               <motion.div initial={{ width: 0 }} animate={{ width: `${(fixedMonthly / salary) * 100}%` }} transition={{ duration: 0.8, delay: 0.2 }} style={{ background: 'linear-gradient(90deg, var(--blue), #5D6BFF)' }} />
               <motion.div initial={{ width: 0 }} animate={{ width: `${(subscriptionsMonthly / salary) * 100}%` }} transition={{ duration: 0.8, delay: 0.3 }} style={{ background: 'linear-gradient(90deg, var(--pink), #E569C9)' }} />
               <motion.div initial={{ width: 0 }} animate={{ width: `${(bufferAmt / salary) * 100}%` }} transition={{ duration: 0.8, delay: 0.4 }} style={{ background: 'linear-gradient(90deg, var(--info), #30C8E5)' }} />
               <motion.div initial={{ width: 0 }} animate={{ width: `${(dreamAlloc / salary) * 100}%` }} transition={{ duration: 0.8, delay: 0.5 }} style={{ background: 'linear-gradient(90deg, var(--purple), #A77EFF)' }} />
-              <motion.div initial={{ width: 0 }} animate={{ width: `auto`, flex: 1 }} transition={{ duration: 0.8, delay: 0.6 }} style={{ background: 'linear-gradient(90deg, var(--ok), var(--ok-dim))' }} />
+              <motion.div initial={{ width: 0 }} animate={{ width: `auto`, flex: 1 }} transition={{ duration: 0.8, delay: 0.6 }} style={{ background: 'linear-gradient(90deg, var(--accent), var(--accent-dim))' }} />
             </>
           )}
         </div>
@@ -79,7 +79,7 @@ export const PlannerScreen = ({ store }) => {
             { l: 'Buffer', c: 'var(--info)', v: bufferAmt },
             { l: 'Obiettivi', c: 'var(--purple)', v: dreamAlloc },
           ].map((x) => (
-            <div key={x.l} className="flex items-center gap-2.5 px-3 py-2.5 bg-bg-1 rounded-xl border border-bd-1">
+            <div key={x.l} className="flex items-center gap-2.5 px-3 py-2.5 bg-glass rounded-xl border border-glass-bd">
               <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ background: x.c }} />
               <div className="flex-1 min-w-0">
                 <p className="text-[9px] uppercase tracking-wider text-fg-4 font-bold">{x.l}</p>
@@ -101,7 +101,7 @@ export const PlannerScreen = ({ store }) => {
         {fixed.length === 0 ? (
           <EmptyMsg>Affitto, bollette, assicurazioni...</EmptyMsg>
         ) : fixed.map((fx) => (
-          <div key={fx.id} className="flex justify-between items-center px-4 py-3 bg-bg-2 rounded-xl border border-bd-1 mb-1.5">
+          <div key={fx.id} className="flex justify-between items-center px-4 py-3 bg-glass rounded-xl border border-glass-bd mb-1.5">
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold">{fx.label}</p>
               <p className="text-[10px] text-fg-4 mt-0.5">
@@ -123,7 +123,7 @@ export const PlannerScreen = ({ store }) => {
         {subscriptions.length === 0 ? (
           <EmptyMsg>Netflix, Spotify, palestra — sospendi quando non servono</EmptyMsg>
         ) : subscriptions.map((sb) => (
-          <div key={sb.id} className={cn('flex justify-between items-center px-4 py-3 bg-bg-2 rounded-xl border border-bd-1 mb-1.5', sb.active === false && 'opacity-50')}>
+          <div key={sb.id} className={cn('flex justify-between items-center px-4 py-3 bg-glass rounded-xl border border-glass-bd mb-1.5', sb.active === false && 'opacity-50')}>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold">{sb.label}</p>
               <p className="text-[10px] text-fg-4 mt-0.5">Giorno {sb.deductDay || 1} · {sb.active === false ? '⏸ Sospeso' : '✓ Attivo'}</p>
@@ -131,8 +131,8 @@ export const PlannerScreen = ({ store }) => {
             <div className="flex items-center gap-2">
               <span className={cn('text-[14px] font-semibold tnum', privacy && 'privacy-blur')}>€{$d(sb.amount)}</span>
               <button onClick={() => toggleSubscription(sb.id)} className="px-2 py-1 rounded-md text-[9px] font-bold" style={{
-                background: sb.active === false ? 'var(--ok-10)' : 'rgba(253,224,71,0.1)',
-                color: sb.active === false ? 'var(--ok)' : 'var(--gold)',
+                background: sb.active === false ? 'var(--accent-10)' : 'rgba(253,224,71,0.1)',
+                color: sb.active === false ? 'var(--accent)' : 'var(--gold)',
               }}>
                 {sb.active === false ? 'RIATTIVA' : 'SOSPENDI'}
               </button>
@@ -145,17 +145,17 @@ export const PlannerScreen = ({ store }) => {
       </Section>
 
       {/* Extra incomes */}
-      <Section title="Entrate extra" onAdd={() => { haptic('light'); setEiLbl(''); setEiAmt(''); setShowExtra(true); }} color="var(--ok)" delay={0.2}>
+      <Section title="Entrate extra" onAdd={() => { haptic('light'); setEiLbl(''); setEiAmt(''); setShowExtra(true); }} color="var(--accent)" delay={0.2}>
         {periodExtras.length === 0 ? (
           <EmptyMsg>Bonus, regali, vendite di questo mese</EmptyMsg>
         ) : periodExtras.map((e) => (
-          <div key={e.id} className="flex justify-between items-center px-4 py-3 bg-bg-2 rounded-xl border border-bd-1 mb-1.5">
+          <div key={e.id} className="flex justify-between items-center px-4 py-3 bg-glass rounded-xl border border-glass-bd mb-1.5">
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold">{e.label || 'Entrata extra'}</p>
               <p className="text-[10px] text-fg-4 mt-0.5">{new Date(e.ts).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className={cn('text-[14px] font-semibold tnum', privacy && 'privacy-blur')} style={{ color: 'var(--ok)' }}>+€{$d(e.amount)}</span>
+              <span className={cn('text-[14px] font-semibold tnum', privacy && 'privacy-blur')} style={{ color: 'var(--accent)' }}>+€{$d(e.amount)}</span>
               <button onClick={() => { haptic('warning'); setExtraIncomes((p) => p.filter((x) => x.id !== e.id)); }} className="p-1 text-red">
                 <X size={15} />
               </button>
@@ -182,8 +182,8 @@ export const PlannerScreen = ({ store }) => {
               onClick={() => { haptic('light'); setRolloverTarget(opt.v); }}
               className="px-3 py-2 rounded-lg text-[11px] font-semibold transition-colors"
               style={{
-                background: rolloverTarget === opt.v ? 'rgba(94,234,212,0.12)' : 'var(--bg-2)',
-                border: `1px solid ${rolloverTarget === opt.v ? 'rgba(94,234,212,0.25)' : 'var(--bd-1)'}`,
+                background: rolloverTarget === opt.v ? 'rgba(94,234,212,0.12)' : 'var(--glass)',
+                border: `1px solid ${rolloverTarget === opt.v ? 'rgba(94,234,212,0.25)' : 'var(--glass-bd)'}`,
                 color: rolloverTarget === opt.v ? 'var(--teal)' : 'var(--fg-3)',
               }}
             >
@@ -211,7 +211,7 @@ export const PlannerScreen = ({ store }) => {
               <button
                 onClick={() => { haptic('success'); setCats((p) => p.map((c) => ({ ...c, weight: c.suggested !== undefined ? c.suggested : c.weight }))); }}
                 className="px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider text-black"
-                style={{ background: 'linear-gradient(135deg, var(--ok), var(--ok-dim))' }}
+                style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))' }}
               >
                 ✦ 50/30/20
               </button>
@@ -307,7 +307,7 @@ export const PlannerScreen = ({ store }) => {
                 <span className="block text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1.5">Quota mensile (€)</span>
                 <input className="inp" type="text" inputMode="decimal" value={d.alloc} onChange={(e) => setDreams((p) => p.map((x) => x.id === d.id ? { ...x, alloc: parseNum(e.target.value) } : x))} />
               </div>
-              <div className="h-1.5 bg-bg-2 rounded-full overflow-hidden mb-2">
+              <div className="h-1.5 bg-glass rounded-full overflow-hidden mb-2">
                 <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: 'linear-gradient(90deg, var(--purple), var(--pink))' }} />
               </div>
               <div className="flex justify-between items-center">
@@ -333,9 +333,9 @@ export const PlannerScreen = ({ store }) => {
             <div className="flex gap-2">
               {[{ v: 'monthly', l: 'Mensile' }, { v: 'annual', l: 'Annuale' }].map((t) => (
                 <button key={t.v} onClick={() => setFType(t.v)} className="flex-1 py-3 rounded-xl text-[13px] font-semibold transition-colors" style={{
-                  background: fType === t.v ? 'var(--ok-10)' : 'var(--bg-2)',
-                  border: `1px solid ${fType === t.v ? 'var(--ok-20)' : 'var(--bd-1)'}`,
-                  color: fType === t.v ? 'var(--ok)' : 'var(--fg-3)',
+                  background: fType === t.v ? 'var(--accent-10)' : 'var(--glass)',
+                  border: `1px solid ${fType === t.v ? 'var(--accent-20)' : 'var(--glass-bd)'}`,
+                  color: fType === t.v ? 'var(--accent)' : 'var(--fg-3)',
                 }}>{t.l}</button>
               ))}
             </div></div>
@@ -372,7 +372,7 @@ export const PlannerScreen = ({ store }) => {
         <div className="space-y-4">
           <div><label className="block text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1.5">Importo (€)</label>
             <input className="inp" type="text" inputMode="decimal" placeholder="0,00" value={eiAmt} onChange={(e) => setEiAmt(e.target.value)} autoFocus
-              style={{ fontSize: 28, padding: 18, textAlign: 'center', color: 'var(--ok)', fontWeight: 300 }} /></div>
+              style={{ fontSize: 28, padding: 18, textAlign: 'center', color: 'var(--accent)', fontWeight: 300 }} /></div>
           <div><label className="block text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1.5">Descrizione</label>
             <input className="inp" placeholder="Bonus, regalo, vendita..." value={eiLbl} onChange={(e) => setEiLbl(e.target.value)} /></div>
           <Button variant="primary" size="xl" className="w-full mt-2" onClick={() => {
@@ -397,7 +397,7 @@ const Section = ({ title, onAdd, color, children, delay = 0 }) => (
       <button
         onClick={onAdd}
         className="px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider"
-        style={{ color: color || 'var(--ok)', background: `${color || 'var(--ok)'}15`, border: `1px solid ${color || 'var(--ok)'}25` }}
+        style={{ color: color || 'var(--accent)', background: `${color || 'var(--accent)'}15`, border: `1px solid ${color || 'var(--accent)'}25` }}
       >
         + AGGIUNGI
       </button>

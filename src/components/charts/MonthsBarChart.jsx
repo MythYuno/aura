@@ -10,10 +10,10 @@ export const MonthsBarChart = ({ months, onSelect, selectedOffset, privacy = fal
       <div className="relative flex items-end justify-between gap-2 h-[180px] mb-4">
         {avg > 0 && (
           <div
-            className="absolute left-0 right-0 border-t border-dashed border-ok/30 z-[1]"
+            className="absolute left-0 right-0 border-t border-dashed border-accent/30 z-[1]"
             style={{ bottom: `${(avg / max) * 160 + 20}px` }}
           >
-            <span className="tnum absolute right-0 -top-4 text-[9px] text-ok font-bold bg-bg px-1.5 rounded">
+            <span className="tnum absolute right-0 -top-4 text-[9px] text-accent font-bold bg-bg px-1.5 rounded">
               media €{$n(avg)}
             </span>
           </div>
@@ -28,7 +28,7 @@ export const MonthsBarChart = ({ months, onSelect, selectedOffset, privacy = fal
               onClick={() => onSelect?.(m.offset)}
               className="flex-1 flex flex-col items-center gap-1.5 bg-transparent border-0 cursor-pointer"
             >
-              <span className={`tnum text-[10px] font-bold ${privacy ? 'blur-sm' : ''} ${isCurrent ? 'text-ok' : 'text-fg-3'}`}>
+              <span className={`tnum text-[10px] font-bold ${privacy ? 'blur-sm' : ''} ${isCurrent ? 'text-accent' : 'text-fg-3'}`}>
                 €{$n(m.total)}
               </span>
               <motion.div
@@ -40,14 +40,14 @@ export const MonthsBarChart = ({ months, onSelect, selectedOffset, privacy = fal
                   height: `${h || 2}px`,
                   minHeight: 2,
                   background: isCurrent
-                    ? 'linear-gradient(180deg, var(--ok), var(--ok-dim))'
+                    ? 'linear-gradient(180deg, var(--accent), var(--accent-dim))'
                     : 'linear-gradient(180deg, var(--pink), rgba(240,171,252,0.4))',
                   boxShadow: isCurrent ? '0 0 20px var(--accent-glow)' : isSelected ? '0 0 15px rgba(240,171,252,0.3)' : 'none',
                   outline: isSelected && !isCurrent ? '2px solid var(--pink)' : 'none',
                   outlineOffset: 2,
                 }}
               />
-              <span className={`text-[10px] capitalize ${isCurrent ? 'text-ok font-bold' : 'text-fg-4 font-medium'}`}>
+              <span className={`text-[10px] capitalize ${isCurrent ? 'text-accent font-bold' : 'text-fg-4 font-medium'}`}>
                 {m.label}
               </span>
             </button>

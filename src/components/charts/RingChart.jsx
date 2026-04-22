@@ -73,7 +73,7 @@ export const RingChart = ({ pTxs, cats, freeBudget, totalSpent }) => {
           >
             <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
             <span className="text-fg-2 truncate">{d.name}</span>
-            <span className="ml-auto font-medium tnum text-fg-1">€{$d(d.value)}</span>
+            <span className="ml-auto font-medium tnum text-fg">€{$d(d.value)}</span>
           </motion.div>
         ))}
       </div>

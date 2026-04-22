@@ -23,7 +23,7 @@ export const Confirm = ({ open, onClose, onConfirm, title, msg, danger = true })
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1001] w-[90vw] max-w-sm bg-bg-1 backdrop-blur-2xl border border-bd-2 rounded-3xl p-6 shadow-2xl"
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1001] w-[90vw] max-w-sm bg-glass backdrop-blur-2xl border border-glass-bd-2 rounded-3xl p-6 shadow-2xl"
               >
                 <Dialog.Title className="text-lg font-semibold mb-2">{title}</Dialog.Title>
                 <p className="text-sm text-fg-3 mb-5 leading-relaxed">{msg}</p>

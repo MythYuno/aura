@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Lock, Check, Zap, Shield } from 'lucide-react';
+import { ArrowRight, Lock, Shield, Zap, TrendingUp, Check } from 'lucide-react';
 import { Button } from '../components/ui/Button.jsx';
+import { Logo } from '../components/ui/Logo.jsx';
 import { parseNum } from '../lib/format.js';
 import { haptic } from '../lib/haptic.js';
 
 const steps = [
-  { title: 'Il tuo denaro, finalmente chiaro.', key: 'welcome' },
-  { title: 'Come ti chiami?', key: 'name' },
-  { title: 'Quanto guadagni al mese?', key: 'salary' },
-  { title: 'Quando ti arriva?', key: 'day' },
+  { key: 'welcome' },
+  { key: 'name' },
+  { key: 'salary' },
+  { key: 'day' },
 ];
 
 export const Onboarding = ({ onDone }) => {
@@ -29,7 +30,7 @@ export const Onboarding = ({ onDone }) => {
     haptic('medium');
     if (step === steps.length - 1) {
       onDone({
-        ...form,
+        name: form.name.trim(),
         salary: parseNum(form.salary),
         day: parseInt(form.day) || 1,
         savings: parseNum(form.savings),
@@ -39,245 +40,183 @@ export const Onboarding = ({ onDone }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-bg overflow-hidden flex flex-col z-[9500]">
-      {/* Orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute rounded-full animate-orb-float" style={{ top: '-15%', left: '-10%', width: 500, height: 500, background: 'radial-gradient(circle, var(--accent-glow), transparent 70%)', filter: 'blur(80px)' }} />
-        <div className="absolute rounded-full animate-orb-float" style={{ bottom: '-10%', right: '-15%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(103,232,249,0.08), transparent 70%)', filter: 'blur(80px)', animationDelay: '10s', animationDirection: 'reverse' }} />
-      </div>
-      <div className="noise" />
+  const prev = () => { if (step > 0) { haptic('light'); setStep(step - 1); } };
 
-      <div className="relative z-10 flex-1 flex flex-col max-w-md mx-auto w-full px-6 py-8" style={{ paddingTop: 'max(32px, env(safe-area-inset-top))', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex gap-1.5">
-            {steps.map((_, i) => (
-              <div
-                key={i}
-                className="h-1 rounded-full transition-all duration-500"
-                style={{
-                  width: i === step ? 40 : 20,
-                  background: i <= step ? 'var(--ok)' : 'var(--fg-5)',
-                  boxShadow: i === step ? '0 0 10px var(--accent-glow)' : 'none',
-                }}
-              />
-            ))}
-          </div>
-          {step > 0 && (
-            <button
-              onClick={() => { haptic('light'); setStep(step - 1); }}
-              className="text-xs text-fg-4 hover:text-fg-2 transition-colors"
-            >
-              ← Indietro
-            </button>
-          )}
+  return (
+    <div className="fixed inset-0 z-[9500] flex items-center justify-center p-4 sm:p-8">
+      <div className="w-full max-w-md mx-auto relative">
+        {/* Progress dots */}
+        <div className="flex justify-center gap-1.5 mb-8">
+          {steps.map((_, i) => (
+            <motion.div
+              key={i}
+              className="h-1 rounded-full transition-all duration-500"
+              style={{
+                width: i === step ? 28 : 4,
+                background: i <= step ? 'var(--accent)' : 'var(--fg-5)',
+                boxShadow: i === step ? '0 0 10px var(--accent-glow)' : 'none',
+              }}
+            />
+          ))}
         </div>
 
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="glass-card p-7 sm:p-9 rounded-[28px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, x: 20, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
-              {step === 0 && <WelcomeStep title={steps[0].title} />}
-              {step === 1 && <NameStep form={form} f={f} next={next} />}
-              {step === 2 && <SalaryStep form={form} f={f} next={next} />}
-              {step === 3 && <DayStep form={form} f={f} next={next} />}
+              {step === 0 && <WelcomeStep />}
+              {step === 1 && <NameStep value={form.name} onChange={f('name')} onNext={next} canNext={canNext()} />}
+              {step === 2 && <SalaryStep value={form.salary} savings={form.savings} onChange={f('salary')} onSavingsChange={f('savings')} onNext={next} canNext={canNext()} />}
+              {step === 3 && <DayStep value={form.day} onChange={f('day')} onNext={next} canNext={canNext()} />}
             </motion.div>
           </AnimatePresence>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between mt-7 pt-5 border-t" style={{ borderColor: 'var(--glass-bd)' }}>
+            {step > 0 ? (
+              <button onClick={prev} className="text-[13px] font-semibold text-fg-3 hover:text-fg transition-colors">
+                ← Indietro
+              </button>
+            ) : <span />}
+            <Button variant="primary" size="lg" onClick={next} disabled={!canNext()} iconRight={<ArrowRight size={15} />}>
+              {step === 0 ? 'Inizia' : step === steps.length - 1 ? 'Fatto' : 'Avanti'}
+            </Button>
+          </div>
         </div>
 
-        <div className="mt-8">
-          <Button
-            variant="primary"
-            size="xl"
-            className="w-full"
-            onClick={next}
-            disabled={!canNext()}
-            icon={step === steps.length - 1 ? <Sparkles size={16} /> : null}
-          >
-            {step === 0 ? 'Iniziamo' : step === steps.length - 1 ? 'Attiva AURA' : 'Continua'}
-            {step !== steps.length - 1 && <ArrowRight size={16} />}
-          </Button>
-          {step === 0 && (
-            <p className="flex items-center justify-center gap-1.5 mt-4 text-[11px] text-fg-4">
-              <Lock size={11} /> Nessun account. Nessun server. Nessun problema.
-            </p>
-          )}
-        </div>
+        <p className="text-center text-[11px] text-fg-4 mt-5 flex items-center justify-center gap-1.5">
+          <Lock size={11} /> Zero cloud · dati sul tuo dispositivo
+        </p>
       </div>
     </div>
   );
 };
 
-const WelcomeStep = ({ title }) => (
+const WelcomeStep = () => (
   <>
-    <motion.div
-      initial={{ scale: 0.5, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-      className="relative w-52 h-52 mx-auto mb-8"
-    >
-      <svg viewBox="0 0 200 200" className="w-full h-full">
-        <defs>
-          <linearGradient id="c1" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--ok)" />
-            <stop offset="100%" stopColor="var(--ok-dim)" />
-          </linearGradient>
-          <linearGradient id="c2" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--info)" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="var(--info)" stopOpacity="0.3" />
-          </linearGradient>
-          <linearGradient id="c3" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--pink)" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="var(--pink)" stopOpacity="0.3" />
-          </linearGradient>
-          <filter id="b1"><feGaussianBlur stdDeviation="3" /></filter>
-        </defs>
-        <circle cx="100" cy="100" r="65" fill="url(#c1)" opacity="0.15" filter="url(#b1)" />
-        <g transform="translate(100 100)">
-          <motion.g
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <rect x="-52" y="-36" width="104" height="72" rx="14" fill="url(#c3)" opacity="0.7" transform="rotate(-8)" />
-          </motion.g>
-          <motion.g
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-          >
-            <rect x="-52" y="-36" width="104" height="72" rx="14" fill="url(#c2)" opacity="0.85" transform="rotate(-3)" />
-          </motion.g>
-          <motion.g
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
-          >
-            <rect x="-52" y="-36" width="104" height="72" rx="14" fill="url(#c1)" />
-            <rect x="-40" y="-20" width="20" height="14" rx="3" fill="rgba(0,0,0,0.3)" />
-            <rect x="-40" y="12" width="40" height="3" rx="1.5" fill="rgba(0,0,0,0.3)" />
-            <rect x="-40" y="20" width="28" height="3" rx="1.5" fill="rgba(0,0,0,0.2)" />
-          </motion.g>
-        </g>
-        <motion.g
-          transform="translate(160 40)"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <path d="M0,-8 L2,-2 L8,0 L2,2 L0,8 L-2,2 L-8,0 L-2,-2 Z" fill="var(--ok)" />
-        </motion.g>
-        <motion.g
-          transform="translate(40 50)"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-        >
-          <path d="M0,-6 L1.5,-1.5 L6,0 L1.5,1.5 L0,6 L-1.5,1.5 L-6,0 L-1.5,-1.5 Z" fill="var(--info)" />
-        </motion.g>
-      </svg>
-    </motion.div>
-    <p className="text-[11px] uppercase tracking-widest text-ok text-center font-semibold mb-3">Benvenuto in</p>
-    <h1 className="font-hero text-[52px] text-center leading-[0.95] mb-4">
-      Il tuo denaro,<br /><span className="font-medium text-gradient-ok">finalmente chiaro</span>
+    <div className="flex justify-center mb-5">
+      <Logo size="lg" withText={false} />
+    </div>
+    <p className="text-[11px] uppercase tracking-[0.2em] text-accent text-center font-bold mb-3">Benvenuto in</p>
+    <h1 className="text-center text-[40px] sm:text-[44px] font-semibold leading-[1] tracking-[-0.035em] mb-4">
+      AURA
     </h1>
-    <p className="text-[14px] text-fg-3 text-center leading-relaxed max-w-sm mx-auto">
-      AURA è il tracker finanziario che non ti giudica. Solo chiarezza, design bello, e tutti i tuoi dati al sicuro sul tuo dispositivo.
+    <p className="text-center text-sm text-fg-2 leading-relaxed mb-7 max-w-sm mx-auto">
+      Il tuo denaro, finalmente chiaro. Registri una spesa, AURA ti dice quanto puoi ancora permetterti. Ogni giorno.
     </p>
-    <div className="grid grid-cols-2 gap-2 mt-8">
+
+    <div className="grid grid-cols-2 gap-2.5">
       {[
-        { icon: Check, title: 'Zero costi', sub: 'Gratis per sempre', color: 'var(--ok)' },
-        { icon: Zap, title: 'Istantaneo', sub: 'Nessun login', color: 'var(--info)' },
-        { icon: Shield, title: '100% privato', sub: 'Dati solo locali', color: 'var(--purple)' },
-        { icon: Sparkles, title: 'Smart', sub: 'Insights intelligenti', color: 'var(--pink)' },
-      ].map((f, i) => (
-        <motion.div
-          key={f.title}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 + i * 0.08 }}
-          className="p-3 bg-bg-2 border border-bd-1 rounded-2xl text-center"
-        >
-          <div className="w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center" style={{ background: `${f.color}15` }}>
-            <f.icon size={16} style={{ color: f.color }} />
+        { icon: Shield, label: 'Privacy totale', sub: 'Zero cloud' },
+        { icon: Zap, label: 'Veloce', sub: 'Spese in 3 tap' },
+        { icon: TrendingUp, label: 'Intelligente', sub: 'Pattern locali' },
+        { icon: Check, label: 'Gratis per sempre', sub: 'Open source' },
+      ].map((it, i) => {
+        const Ico = it.icon;
+        return (
+          <div key={i} className="glass rounded-xl p-3.5 flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-10)' }}>
+              <Ico size={14} style={{ color: 'var(--accent)' }} />
+            </div>
+            <div>
+              <p className="text-[12px] font-semibold">{it.label}</p>
+              <p className="text-[10px] text-fg-3 mt-0.5">{it.sub}</p>
+            </div>
           </div>
-          <p className="text-xs font-semibold">{f.title}</p>
-          <p className="text-[10px] text-fg-4 mt-0.5">{f.sub}</p>
-        </motion.div>
-      ))}
+        );
+      })}
     </div>
   </>
 );
 
-const NameStep = ({ form, f, next }) => (
+const NameStep = ({ value, onChange, onNext, canNext }) => (
   <>
-    <p className="text-[11px] uppercase tracking-widest text-ok font-semibold mb-3">Step 1 di 3</p>
-    <h1 className="font-hero text-[44px] leading-[0.95] mb-3">
+    <p className="text-[11px] uppercase tracking-[0.2em] text-accent font-bold mb-3">Passo 1 di 3</p>
+    <h1 className="text-[28px] sm:text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] mb-3">
       Come ti chiami?
     </h1>
-    <p className="text-[14px] text-fg-3 mb-8">Il nome che vedrai nel saluto.</p>
+    <p className="text-sm text-fg-2 mb-6">Il nome che vedrai nel saluto ogni giorno.</p>
     <input
-      className="inp"
-      placeholder="Il tuo nome"
-      value={form.name}
-      onChange={f('name')}
-      onKeyDown={(e) => e.key === 'Enter' && next()}
+      className="inp text-lg py-4"
+      value={value}
+      onChange={onChange}
+      onKeyDown={(e) => e.key === 'Enter' && canNext && onNext()}
+      placeholder="Es. Simone"
       autoFocus
-      style={{ fontSize: 22, padding: '18px 20px' }}
     />
   </>
 );
 
-const SalaryStep = ({ form, f, next }) => (
+const SalaryStep = ({ value, savings, onChange, onSavingsChange, onNext, canNext }) => (
   <>
-    <p className="text-[11px] uppercase tracking-widest text-ok font-semibold mb-3">Step 2 di 3</p>
-    <h1 className="font-hero text-[44px] leading-[0.95] mb-3">
-      Il tuo <span className="font-medium text-gradient-ok">stipendio</span>
+    <p className="text-[11px] uppercase tracking-[0.2em] text-accent font-bold mb-3">Passo 2 di 3</p>
+    <h1 className="text-[28px] sm:text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] mb-3">
+      Quanto guadagni al mese?
     </h1>
-    <p className="text-[14px] text-fg-3 mb-8">Netto mensile, in euro.</p>
-    <input
-      className="inp"
-      type="text"
-      inputMode="decimal"
-      placeholder="2.000"
-      value={form.salary}
-      onChange={f('salary')}
-      onKeyDown={(e) => e.key === 'Enter' && next()}
-      autoFocus
-      style={{ fontSize: 36, padding: '20px 24px', textAlign: 'center', color: 'var(--ok)', fontWeight: 300 }}
-    />
+    <p className="text-sm text-fg-2 mb-6">Stipendio netto. Serve solo a calcolare il budget.</p>
+    <div className="flex flex-col gap-3">
+      <div>
+        <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-fg-3 mb-2">Stipendio netto</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-3 font-semibold text-lg">€</span>
+          <input
+            className="inp pl-10 text-lg py-4 font-mono"
+            type="text"
+            inputMode="decimal"
+            value={value}
+            onChange={onChange}
+            onKeyDown={(e) => e.key === 'Enter' && canNext && onNext()}
+            placeholder="1800"
+            autoFocus
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-fg-3 mb-2">Risparmi attuali (opzionale)</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-3 font-semibold text-lg">€</span>
+          <input
+            className="inp pl-10 text-base py-3.5 font-mono"
+            type="text"
+            inputMode="decimal"
+            value={savings}
+            onChange={onSavingsChange}
+            placeholder="0"
+          />
+        </div>
+      </div>
+    </div>
   </>
 );
 
-const DayStep = ({ form, f, next }) => (
+const DayStep = ({ value, onChange, onNext, canNext }) => (
   <>
-    <p className="text-[11px] uppercase tracking-widest text-ok font-semibold mb-3">Step 3 di 3</p>
-    <h1 className="font-hero text-[44px] leading-[0.95] mb-3">
-      Giorno di reset
+    <p className="text-[11px] uppercase tracking-[0.2em] text-accent font-bold mb-3">Passo 3 di 3</p>
+    <h1 className="text-[28px] sm:text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] mb-3">
+      Quando arriva lo stipendio?
     </h1>
-    <p className="text-[14px] text-fg-3 mb-8">Il giorno del mese in cui ti arriva lo stipendio (1-28).</p>
-    <input
-      className="inp"
-      type="number"
-      min={1}
-      max={28}
-      value={form.day}
-      onChange={f('day')}
-      onKeyDown={(e) => e.key === 'Enter' && next()}
-      autoFocus
-      style={{ fontSize: 36, padding: '20px 24px', textAlign: 'center' }}
-    />
-    <div className="mt-6">
-      <label className="block text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-2">Risparmi attuali (opzionale)</label>
+    <p className="text-sm text-fg-2 mb-6">Il giorno del mese in cui parte il tuo budget.</p>
+    <div className="relative">
       <input
-        className="inp"
-        type="text"
-        inputMode="decimal"
-        placeholder="0"
-        value={form.savings}
-        onChange={f('savings')}
+        className="inp text-lg py-4 text-center font-mono"
+        type="number"
+        min={1}
+        max={28}
+        value={value}
+        onChange={onChange}
+        onKeyDown={(e) => e.key === 'Enter' && canNext && onNext()}
+        autoFocus
       />
+      <p className="text-center text-[11px] text-fg-4 mt-3">
+        {value && parseInt(value) >= 1 && parseInt(value) <= 28
+          ? `Il ${value} di ogni mese il budget si resetta`
+          : 'Inserisci un giorno da 1 a 28'}
+      </p>
     </div>
   </>
 );

@@ -1,72 +1,76 @@
 import { motion } from 'framer-motion';
 import { Card } from '../ui/Card.jsx';
 import { NumberTicker } from '../ui/NumberTicker.jsx';
-import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '../../lib/format.js';
 
 export const BalanceHero = ({ dailyBudget, remaining, daysLeft, totalSpent, freeBudget, bufferAmt, dreamAlloc, isOver, privacy }) => {
   return (
-    <Card padding="xl" className="col-span-full relative overflow-hidden" delay={0.05}>
-      {/* Orbs */}
-      <div className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none" style={{
-        background: 'radial-gradient(circle, var(--accent-glow), transparent 60%)',
+    <Card padding="lg" className="col-span-full relative overflow-hidden" delay={0.05}>
+      {/* Floating orbs behind number */}
+      <div className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none orb-drift" style={{
+        background: 'radial-gradient(circle, var(--accent-glow), transparent 65%)',
         filter: 'blur(50px)',
-        transform: 'translate(30%, -30%)',
-      }} />
-      <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full pointer-events-none" style={{
-        background: 'radial-gradient(circle, rgba(103,232,249,0.06), transparent 70%)',
-        filter: 'blur(40px)',
-        transform: 'translate(-30%, 30%)',
+        transform: 'translate(30%, -35%)',
       }} />
 
       {/* Status chip */}
-      <div className="relative flex items-center gap-2 mb-5">
-        <span className={cn(
-          'inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-full text-[11px] font-medium tracking-wide',
-          isOver ? 'bg-red/10 text-red border border-red/20' : 'bg-ok/10 text-ok border border-ok/20'
-        )}>
-          <span className="relative w-2 h-2 rounded-full" style={{ background: isOver ? 'var(--red)' : 'var(--ok)' }}>
-            <span className="absolute inset-0 rounded-full live-pulse" style={{ background: isOver ? 'var(--red)' : 'var(--ok)' }} />
+      <div className="relative flex items-center mb-5">
+        <span className={cn('inline-flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full text-[11px] font-semibold')}
+              style={{
+                background: isOver ? 'color-mix(in srgb, var(--red) 12%, transparent)' : 'var(--accent-10)',
+                border: `1px solid ${isOver ? 'color-mix(in srgb, var(--red) 25%, transparent)' : 'var(--accent-20)'}`,
+                color: isOver ? 'var(--red)' : 'var(--accent)',
+                backdropFilter: 'blur(10px)',
+              }}>
+          <span className="relative w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor' }}>
+            <span className="absolute inset-0 rounded-full live-pulse" style={{ background: 'currentColor' }} />
           </span>
-          {isOver ? 'Attenzione alle spese' : 'Tutto sotto controllo'}
+          {isOver ? 'Attenzione' : 'Tutto ok'}
         </span>
       </div>
 
-      <p className="text-[13px] text-fg-3 mb-2 relative">Disponibile oggi</p>
+      <p className="text-[12px] text-fg-3 mb-2 relative font-medium uppercase tracking-[0.15em]">Budget giornaliero</p>
 
       <motion.h1
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          'font-hero text-[72px] sm:text-[92px] leading-[0.88] relative text-gradient-ok',
+          'font-display text-[58px] sm:text-[78px] leading-[0.95] tracking-[-0.04em] relative text-gradient-accent',
           privacy && 'privacy-blur'
         )}
       >
-        <span className="text-4xl sm:text-5xl opacity-60 mr-1 align-top leading-none" style={{ letterSpacing: 0 }}>€</span>
+        <span className="text-3xl sm:text-4xl opacity-65 mr-1 align-top font-medium" style={{ letterSpacing: 0 }}>€</span>
         <NumberTicker value={dailyBudget} decimals={2} />
       </motion.h1>
 
-      <div className="flex gap-2 mt-3 text-[13px] text-fg-3 relative">
+      <div className="flex gap-2 mt-3 text-[13px] text-fg-2 relative font-mono">
         <span className={privacy ? 'privacy-blur' : ''}>
-          <strong className="text-fg-1 font-semibold">€<NumberTicker value={remaining} decimals={2} /></strong> rimasti
+          <strong className="text-fg font-semibold">€<NumberTicker value={remaining} decimals={2} /></strong>
+          <span className="text-fg-3 ml-1">rimasti</span>
         </span>
-        <span className="text-fg-5">·</span>
-        <span><strong className="text-fg-1 font-semibold">{daysLeft}</strong> {daysLeft === 1 ? 'giorno' : 'giorni'} al reset</span>
+        <span className="text-fg-4">·</span>
+        <span><strong className="text-fg font-semibold">{daysLeft}</strong> <span className="text-fg-3">{daysLeft === 1 ? 'giorno' : 'giorni'}</span></span>
       </div>
 
       <div className="grid grid-cols-3 gap-2 mt-6 relative">
         {[
           { label: 'Speso', value: totalSpent, dec: 2, color: 'var(--pink)' },
-          { label: 'Budget', value: freeBudget, dec: 0, color: 'var(--fg-1)' },
+          { label: 'Budget', value: freeBudget, dec: 0, color: 'var(--fg)' },
           { label: 'Salvati', value: bufferAmt + dreamAlloc, dec: 0, color: 'var(--info)' },
-        ].map((s) => (
-          <div key={s.label} className="p-3 bg-bg-1 rounded-xl border border-bd-1">
-            <p className="text-[10px] uppercase tracking-widest text-fg-4 font-semibold mb-1.5">{s.label}</p>
-            <p className={cn('text-[17px] font-medium tracking-tight tnum', privacy && 'privacy-blur')} style={{ color: s.color }}>
+        ].map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 + i * 0.08 }}
+            className="glass-2 p-3 rounded-xl"
+          >
+            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-fg-3 mb-1.5">{s.label}</p>
+            <p className={cn('font-mono text-[16px] font-semibold tnum', privacy && 'privacy-blur')} style={{ color: s.color }}>
               €<NumberTicker value={s.value} decimals={s.dec} />
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </Card>

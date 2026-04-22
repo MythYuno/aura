@@ -42,7 +42,7 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
           <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Importo totale (€)</label>
           <input
             className="inp text-center tnum text-[28px] py-5 font-light"
-            style={{ color: 'var(--ok)' }}
+            style={{ color: 'var(--accent)' }}
             type="text" inputMode="decimal" placeholder="0,00"
             value={val} onChange={(e) => setVal(e.target.value)} autoFocus
           />
@@ -67,8 +67,8 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
                   onClick={() => { haptic('light'); setCatId(c.id); }}
                   className="px-3.5 py-2.5 rounded-xl border flex items-center gap-2 text-[12px] font-semibold transition-all"
                   style={{
-                    background: sel ? `${c.color}20` : 'var(--bg-2)',
-                    borderColor: sel ? `${c.color}40` : 'var(--bd-1)',
+                    background: sel ? `${c.color}20` : 'var(--glass)',
+                    borderColor: sel ? `${c.color}40` : 'var(--glass-bd)',
                     color: sel ? c.color : 'var(--fg-3)',
                   }}
                 >
@@ -92,8 +92,8 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
           onClick={() => { haptic('light'); setIsCredit((p) => !p); }}
           className="w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left"
           style={{
-            background: isCredit ? 'rgba(94,234,212,0.08)' : 'var(--bg-2)',
-            borderColor: isCredit ? 'rgba(94,234,212,0.2)' : 'var(--bd-1)',
+            background: isCredit ? 'rgba(94,234,212,0.08)' : 'var(--glass)',
+            borderColor: isCredit ? 'rgba(94,234,212,0.2)' : 'var(--glass-bd)',
           }}
         >
           <RotateCcw size={18} style={{ color: isCredit ? 'var(--teal)' : 'var(--fg-4)' }} />
@@ -104,7 +104,7 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
             <div className="text-[10px] text-fg-4">Parte dell'importo ti verrà restituita</div>
           </div>
           <div className="w-11 h-6 rounded-full p-0.5 transition-all"
-               style={{ background: isCredit ? 'var(--teal)' : 'var(--bg-3)' }}>
+               style={{ background: isCredit ? 'var(--teal)' : 'var(--glass2)' }}>
             <motion.div
               animate={{ x: isCredit ? 18 : 0 }}
               transition={{ type: 'spring', damping: 20, stiffness: 300 }}
@@ -133,7 +133,7 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
                 <div className="flex justify-between mt-3 p-3 rounded-xl" style={{ background: 'rgba(94,234,212,0.06)' }}>
                   <div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4">Costo reale</div>
-                    <div className="tnum text-[16px] font-bold" style={{ color: 'var(--ok)' }}>
+                    <div className="tnum text-[16px] font-bold" style={{ color: 'var(--accent)' }}>
                       €{$d(Math.max(0, parseNum(val) - parseNum(creditAmt)))}
                     </div>
                   </div>

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { realCost, $d } from '../../lib/format.js';
 
-export const Heatmap = ({ txs, color = 'var(--ok)', privacy = false }) => {
+export const Heatmap = ({ txs, color = 'var(--accent)', privacy = false }) => {
   const { weeks, max, monthLabels } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -67,7 +67,7 @@ export const Heatmap = ({ txs, color = 'var(--ok)', privacy = false }) => {
                     title={`${d.date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}: €${$d(d.spent)}`}
                     className="w-3.5 h-3.5 rounded-[3px] cursor-pointer transition-transform hover:scale-125"
                     style={{
-                      background: d.spent === 0 ? 'var(--bg-2)' : color,
+                      background: d.spent === 0 ? 'var(--glass)' : color,
                       opacity: d.spent === 0 ? 1 : getOpacity(d.spent),
                       border: d.spent === 0 ? '1px solid var(--bd-1)' : 'none',
                       filter: privacy ? 'blur(6px)' : 'none',
@@ -86,7 +86,7 @@ export const Heatmap = ({ txs, color = 'var(--ok)', privacy = false }) => {
               key={i}
               className="w-3 h-3 rounded-[3px]"
               style={{
-                background: v === 0 ? 'var(--bg-2)' : color,
+                background: v === 0 ? 'var(--glass)' : color,
                 opacity: v === 0 ? 1 : 0.15 + v * 0.75,
                 border: v === 0 ? '1px solid var(--bd-1)' : 'none',
               }}

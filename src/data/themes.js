@@ -1,174 +1,336 @@
+/**
+ * AURA v4 — 5 Glass themes
+ * Each defines: mesh gradients (dark+light), accent + glow,
+ * logo gradient (dark+light), UI chrome (backgrounds/borders/foregrounds).
+ */
+
+const baseDark = {
+  glass: 'rgba(255,255,255,0.055)',
+  glass2: 'rgba(255,255,255,0.09)',
+  glassBd: 'rgba(255,255,255,0.1)',
+  glassBd2: 'rgba(255,255,255,0.18)',
+  fg: 'rgba(255,255,255,0.95)',
+  fg2: 'rgba(255,255,255,0.68)',
+  fg3: 'rgba(255,255,255,0.42)',
+  fg4: 'rgba(255,255,255,0.22)',
+  fg5: 'rgba(255,255,255,0.12)',
+  red: '#F87171',
+  warn: '#FBBF24',
+};
+const baseLight = {
+  glass: 'rgba(255,255,255,0.55)',
+  glass2: 'rgba(255,255,255,0.75)',
+  glassBd: 'rgba(255,255,255,0.75)',
+  glassBd2: 'rgba(10,10,20,0.08)',
+  fg: '#0A0A14',
+  fg2: 'rgba(10,10,20,0.72)',
+  fg3: 'rgba(10,10,20,0.5)',
+  fg4: 'rgba(10,10,20,0.28)',
+  fg5: 'rgba(10,10,20,0.14)',
+  red: '#DC2626',
+  warn: '#B45309',
+};
+
+const toVars = (obj, prefix = '') => {
+  const out = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    const key = prefix + k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
+    out[`--${key}`] = v;
+  });
+  return out;
+};
+
 export const themes = {
-  aurora: {
-    id: 'aurora',
-    name: 'Aurora',
-    description: 'Scuro con accenti lime',
-    preview: ['#0A0A0F', '#BEF264', '#67E8F9'],
-    vars: {
-      '--bg': '#0A0A0F',
-      '--bg-1': '#0F0F16',
-      '--bg-2': 'rgba(255,255,255,0.03)',
-      '--bg-3': 'rgba(255,255,255,0.06)',
-      '--bd-1': 'rgba(255,255,255,0.06)',
-      '--bd-2': 'rgba(255,255,255,0.1)',
-      '--bd-3': 'rgba(255,255,255,0.14)',
-      '--fg-1': '#fff',
-      '--fg-2': 'rgba(255,255,255,0.7)',
-      '--fg-3': 'rgba(255,255,255,0.45)',
-      '--fg-4': 'rgba(255,255,255,0.28)',
-      '--fg-5': 'rgba(255,255,255,0.12)',
-      '--ok': '#BEF264',
-      '--ok-dim': '#A3E635',
-      '--info': '#67E8F9',
-      '--pink': '#F0ABFC',
-      '--gold': '#FDE047',
-      '--blue': '#93C5FD',
-      '--red': '#FCA5A5',
-      '--purple': '#D8B4FE',
-      '--orange': '#FDBA74',
-      '--teal': '#5EEAD4',
-      '--ok-10': 'rgba(190,242,100,0.1)',
-      '--ok-20': 'rgba(190,242,100,0.2)',
-      '--accent-glow': 'rgba(190,242,100,0.2)',
-      '--fx-intensity': '1',
+  acid: {
+    id: 'acid',
+    name: 'Acid Lime',
+    description: 'Grigio antracite + verde acido',
+    preview: ['#BEF264', '#27272A', '#52525B'],
+    dark: {
+      bg: '#0A0A0B',
+      mesh: `
+        radial-gradient(ellipse 70% 45% at 15% 0%, rgba(190,242,100,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 40% at 85% 20%, rgba(163,230,53,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 35% at 50% 100%, rgba(101,163,13,0.08) 0%, transparent 55%)
+      `,
+      accent: '#BEF264',
+      accentDim: '#A3E635',
+      glow: 'rgba(190,242,100,0.35)',
+      accent2: '#71717A',
+      logoFrom: '#BEF264',
+      logoTo: '#65A30D',
+      ok: '#BEF264',
+      info: '#67E8F9',
+      pink: '#F0ABFC',
+      gold: '#FDE047',
+      blue: '#93C5FD',
+      purple: '#D8B4FE',
+      orange: '#FDBA74',
+      teal: '#5EEAD4',
+      ...baseDark,
+    },
+    light: {
+      bg: '#F5F5F4',
+      mesh: `
+        radial-gradient(ellipse 70% 45% at 15% 0%, rgba(190,242,100,0.35) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 40% at 85% 20%, rgba(163,230,53,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 35% at 50% 100%, rgba(101,163,13,0.14) 0%, transparent 55%)
+      `,
+      accent: '#65A30D',
+      accentDim: '#4D7C0F',
+      glow: 'rgba(101,163,13,0.25)',
+      accent2: '#52525B',
+      logoFrom: '#84CC16',
+      logoTo: '#365314',
+      ok: '#65A30D',
+      info: '#0891B2',
+      pink: '#C026D3',
+      gold: '#CA8A04',
+      blue: '#2563EB',
+      purple: '#9333EA',
+      orange: '#EA580C',
+      teal: '#0D9488',
+      ...baseLight,
     },
   },
-  minimal: {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Essenziale, quasi monocromo',
-    preview: ['#0A0A0A', '#FFFFFF', '#888888'],
-    vars: {
-      '--bg': '#0A0A0A',
-      '--bg-1': '#0F0F0F',
-      '--bg-2': 'rgba(255,255,255,0.02)',
-      '--bg-3': 'rgba(255,255,255,0.05)',
-      '--bd-1': 'rgba(255,255,255,0.06)',
-      '--bd-2': 'rgba(255,255,255,0.1)',
-      '--bd-3': 'rgba(255,255,255,0.14)',
-      '--fg-1': '#fff',
-      '--fg-2': 'rgba(255,255,255,0.75)',
-      '--fg-3': 'rgba(255,255,255,0.5)',
-      '--fg-4': 'rgba(255,255,255,0.3)',
-      '--fg-5': 'rgba(255,255,255,0.15)',
-      '--ok': '#FFFFFF',
-      '--ok-dim': '#BBBBBB',
-      '--info': '#A0A0A0',
-      '--pink': '#D0D0D0',
-      '--gold': '#E0E0E0',
-      '--blue': '#B0B0B0',
-      '--red': '#FF6060',
-      '--purple': '#C0C0C0',
-      '--orange': '#E5E5E5',
-      '--teal': '#909090',
-      '--ok-10': 'rgba(255,255,255,0.06)',
-      '--ok-20': 'rgba(255,255,255,0.12)',
-      '--accent-glow': 'rgba(255,255,255,0.05)',
-      '--fx-intensity': '0.3',
+
+  prism: {
+    id: 'prism',
+    name: 'Prism',
+    description: 'Mesh multicolor: rosa · viola · ciano',
+    preview: ['#F472B6', '#A78BFA', '#60A5FA'],
+    dark: {
+      bg: '#06061A',
+      mesh: `
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(96,165,250,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(168,85,247,0.3) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 40% at 60% 100%, rgba(244,114,182,0.2) 0%, transparent 55%)
+      `,
+      accent: '#A78BFA',
+      accentDim: '#8B5CF6',
+      glow: 'rgba(167,139,250,0.4)',
+      accent2: '#F472B6',
+      logoFrom: '#F472B6',
+      logoTo: '#60A5FA',
+      ok: '#34D399',
+      info: '#60A5FA',
+      pink: '#F472B6',
+      gold: '#FDE047',
+      blue: '#93C5FD',
+      purple: '#C4B5FD',
+      orange: '#FDBA74',
+      teal: '#5EEAD4',
+      ...baseDark,
+    },
+    light: {
+      bg: '#FAF5FF',
+      mesh: `
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(96,165,250,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(168,85,247,0.3) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 40% at 60% 100%, rgba(244,114,182,0.2) 0%, transparent 55%)
+      `,
+      accent: '#8B5CF6',
+      accentDim: '#7C3AED',
+      glow: 'rgba(139,92,246,0.25)',
+      accent2: '#DB2777',
+      logoFrom: '#DB2777',
+      logoTo: '#2563EB',
+      ok: '#059669',
+      info: '#2563EB',
+      pink: '#DB2777',
+      gold: '#CA8A04',
+      blue: '#2563EB',
+      purple: '#8B5CF6',
+      orange: '#EA580C',
+      teal: '#0D9488',
+      ...baseLight,
     },
   },
-  midnight: {
-    id: 'midnight',
-    name: 'Midnight',
-    description: 'Blu notte, sereno',
-    preview: ['#0A1428', '#93C5FD', '#F0ABFC'],
-    vars: {
-      '--bg': '#0A1428',
-      '--bg-1': '#0F1A32',
-      '--bg-2': 'rgba(147,197,253,0.03)',
-      '--bg-3': 'rgba(147,197,253,0.06)',
-      '--bd-1': 'rgba(147,197,253,0.08)',
-      '--bd-2': 'rgba(147,197,253,0.14)',
-      '--bd-3': 'rgba(147,197,253,0.2)',
-      '--fg-1': '#E8EEFF',
-      '--fg-2': 'rgba(232,238,255,0.72)',
-      '--fg-3': 'rgba(232,238,255,0.48)',
-      '--fg-4': 'rgba(232,238,255,0.28)',
-      '--fg-5': 'rgba(232,238,255,0.14)',
-      '--ok': '#93C5FD',
-      '--ok-dim': '#7BA7E8',
-      '--info': '#67E8F9',
-      '--pink': '#F0ABFC',
-      '--gold': '#FDE047',
-      '--blue': '#93C5FD',
-      '--red': '#FCA5A5',
-      '--purple': '#D8B4FE',
-      '--orange': '#FDBA74',
-      '--teal': '#5EEAD4',
-      '--ok-10': 'rgba(147,197,253,0.1)',
-      '--ok-20': 'rgba(147,197,253,0.2)',
-      '--accent-glow': 'rgba(147,197,253,0.25)',
-      '--fx-intensity': '1.2',
-    },
-  },
+
   sunset: {
     id: 'sunset',
     name: 'Sunset',
-    description: 'Caldo, rosa e oro',
-    preview: ['#1C0D14', '#F0ABFC', '#FDE047'],
-    vars: {
-      '--bg': '#1C0D14',
-      '--bg-1': '#24101A',
-      '--bg-2': 'rgba(240,171,252,0.025)',
-      '--bg-3': 'rgba(240,171,252,0.055)',
-      '--bd-1': 'rgba(253,224,71,0.08)',
-      '--bd-2': 'rgba(253,224,71,0.14)',
-      '--bd-3': 'rgba(253,224,71,0.2)',
-      '--fg-1': '#FFE8F0',
-      '--fg-2': 'rgba(255,232,240,0.72)',
-      '--fg-3': 'rgba(255,232,240,0.48)',
-      '--fg-4': 'rgba(255,232,240,0.28)',
-      '--fg-5': 'rgba(255,232,240,0.14)',
-      '--ok': '#FDE047',
-      '--ok-dim': '#FACC15',
-      '--info': '#F0ABFC',
-      '--pink': '#F0ABFC',
-      '--gold': '#FDE047',
-      '--blue': '#C7D2FE',
-      '--red': '#FCA5A5',
-      '--purple': '#D8B4FE',
-      '--orange': '#FDBA74',
-      '--teal': '#FBCFE8',
-      '--ok-10': 'rgba(253,224,71,0.12)',
-      '--ok-20': 'rgba(253,224,71,0.22)',
-      '--accent-glow': 'rgba(240,171,252,0.25)',
-      '--fx-intensity': '1.3',
+    description: 'Caldo: arancio · rosa · peach',
+    preview: ['#FB923C', '#F472B6', '#FCD34D'],
+    dark: {
+      bg: '#1A0A0A',
+      mesh: `
+        radial-gradient(ellipse 70% 45% at 15% 0%, rgba(251,146,60,0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 85% 25%, rgba(244,114,182,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 40% at 50% 100%, rgba(252,211,77,0.18) 0%, transparent 55%)
+      `,
+      accent: '#FB923C',
+      accentDim: '#F97316',
+      glow: 'rgba(251,146,60,0.4)',
+      accent2: '#F472B6',
+      logoFrom: '#FDE047',
+      logoTo: '#F472B6',
+      ok: '#FB923C',
+      info: '#67E8F9',
+      pink: '#F472B6',
+      gold: '#FDE047',
+      blue: '#93C5FD',
+      purple: '#C4B5FD',
+      orange: '#FB923C',
+      teal: '#5EEAD4',
+      ...baseDark,
+    },
+    light: {
+      bg: '#FFF7ED',
+      mesh: `
+        radial-gradient(ellipse 70% 45% at 15% 0%, rgba(251,146,60,0.32) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 85% 25%, rgba(244,114,182,0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 40% at 50% 100%, rgba(252,211,77,0.22) 0%, transparent 55%)
+      `,
+      accent: '#EA580C',
+      accentDim: '#C2410C',
+      glow: 'rgba(234,88,12,0.25)',
+      accent2: '#DB2777',
+      logoFrom: '#EA580C',
+      logoTo: '#DB2777',
+      ok: '#EA580C',
+      info: '#0891B2',
+      pink: '#DB2777',
+      gold: '#CA8A04',
+      blue: '#2563EB',
+      purple: '#9333EA',
+      orange: '#EA580C',
+      teal: '#0D9488',
+      ...baseLight,
     },
   },
-  neon: {
-    id: 'neon',
-    name: 'Neon',
-    description: 'Cyberpunk, glow intenso',
-    preview: ['#050014', '#00F0FF', '#FF00D4'],
-    vars: {
-      '--bg': '#050014',
-      '--bg-1': '#0A0524',
-      '--bg-2': 'rgba(0,240,255,0.03)',
-      '--bg-3': 'rgba(0,240,255,0.06)',
-      '--bd-1': 'rgba(0,240,255,0.1)',
-      '--bd-2': 'rgba(0,240,255,0.18)',
-      '--bd-3': 'rgba(0,240,255,0.25)',
-      '--fg-1': '#F0FEFF',
-      '--fg-2': 'rgba(240,254,255,0.75)',
-      '--fg-3': 'rgba(240,254,255,0.5)',
-      '--fg-4': 'rgba(240,254,255,0.3)',
-      '--fg-5': 'rgba(240,254,255,0.15)',
-      '--ok': '#00F0FF',
-      '--ok-dim': '#00B8D4',
-      '--info': '#00F0FF',
-      '--pink': '#FF00D4',
-      '--gold': '#FFEA00',
-      '--blue': '#7C4DFF',
-      '--red': '#FF1744',
-      '--purple': '#D500F9',
-      '--orange': '#FF6D00',
-      '--teal': '#00E5CC',
-      '--ok-10': 'rgba(0,240,255,0.12)',
-      '--ok-20': 'rgba(0,240,255,0.25)',
-      '--accent-glow': 'rgba(0,240,255,0.35)',
-      '--fx-intensity': '1.5',
+
+  ocean: {
+    id: 'ocean',
+    name: 'Ocean',
+    description: 'Fresco: cyan · blu · indaco',
+    preview: ['#22D3EE', '#60A5FA', '#818CF8'],
+    dark: {
+      bg: '#02081A',
+      mesh: `
+        radial-gradient(ellipse 75% 45% at 20% 0%, rgba(34,211,238,0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 85% 25%, rgba(96,165,250,0.3) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 40% at 50% 100%, rgba(129,140,248,0.2) 0%, transparent 55%)
+      `,
+      accent: '#22D3EE',
+      accentDim: '#06B6D4',
+      glow: 'rgba(34,211,238,0.35)',
+      accent2: '#60A5FA',
+      logoFrom: '#22D3EE',
+      logoTo: '#818CF8',
+      ok: '#34D399',
+      info: '#22D3EE',
+      pink: '#F472B6',
+      gold: '#FDE047',
+      blue: '#60A5FA',
+      purple: '#C4B5FD',
+      orange: '#FDBA74',
+      teal: '#22D3EE',
+      ...baseDark,
+    },
+    light: {
+      bg: '#ECFEFF',
+      mesh: `
+        radial-gradient(ellipse 75% 45% at 20% 0%, rgba(34,211,238,0.32) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 85% 25%, rgba(96,165,250,0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 40% at 50% 100%, rgba(129,140,248,0.22) 0%, transparent 55%)
+      `,
+      accent: '#0891B2',
+      accentDim: '#0E7490',
+      glow: 'rgba(8,145,178,0.22)',
+      accent2: '#2563EB',
+      logoFrom: '#0891B2',
+      logoTo: '#4F46E5',
+      ok: '#059669',
+      info: '#0891B2',
+      pink: '#DB2777',
+      gold: '#CA8A04',
+      blue: '#2563EB',
+      purple: '#7C3AED',
+      orange: '#EA580C',
+      teal: '#0891B2',
+      ...baseLight,
+    },
+  },
+
+  mono: {
+    id: 'mono',
+    name: 'Mono',
+    description: 'Minimale: solo grigi + neutro',
+    preview: ['#E7E5E4', '#57534E', '#1C1917'],
+    dark: {
+      bg: '#0A0A0A',
+      mesh: `
+        radial-gradient(ellipse 70% 40% at 20% 0%, rgba(255,255,255,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 35% at 80% 100%, rgba(255,255,255,0.05) 0%, transparent 55%)
+      `,
+      accent: '#E7E5E4',
+      accentDim: '#D6D3D1',
+      glow: 'rgba(231,229,228,0.2)',
+      accent2: '#A8A29E',
+      logoFrom: '#F5F5F4',
+      logoTo: '#78716C',
+      ok: '#D6D3D1',
+      info: '#A8A29E',
+      pink: '#D6D3D1',
+      gold: '#E7E5E4',
+      blue: '#A8A29E',
+      purple: '#D6D3D1',
+      orange: '#E7E5E4',
+      teal: '#A8A29E',
+      ...baseDark,
+    },
+    light: {
+      bg: '#FAFAF9',
+      mesh: `
+        radial-gradient(ellipse 70% 40% at 20% 0%, rgba(10,10,10,0.04) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 35% at 80% 100%, rgba(10,10,10,0.03) 0%, transparent 55%)
+      `,
+      accent: '#1C1917',
+      accentDim: '#292524',
+      glow: 'rgba(28,25,23,0.14)',
+      accent2: '#57534E',
+      logoFrom: '#1C1917',
+      logoTo: '#78716C',
+      ok: '#1C1917',
+      info: '#57534E',
+      pink: '#57534E',
+      gold: '#44403C',
+      blue: '#57534E',
+      purple: '#78716C',
+      orange: '#44403C',
+      teal: '#57534E',
+      ...baseLight,
     },
   },
 };
 
 export const themeList = Object.values(themes);
+
+/**
+ * Apply a theme to the document root.
+ * Sets all CSS variables including color + chrome + mesh + logo.
+ */
+export const applyTheme = (themeId, mode) => {
+  const theme = themes[themeId] || themes.acid;
+  const root = document.documentElement;
+  const actualMode = mode === 'auto'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : mode;
+  const palette = theme[actualMode] || theme.dark;
+
+  // Apply all palette keys as CSS vars
+  Object.entries(palette).forEach(([key, value]) => {
+    const cssKey = key.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
+    root.style.setProperty(`--${cssKey}`, value);
+  });
+
+  // Compose glow stops for reuse
+  root.style.setProperty('--accent-glow', palette.glow);
+  root.style.setProperty('--accent-10', `color-mix(in srgb, ${palette.accent} 10%, transparent)`);
+  root.style.setProperty('--accent-20', `color-mix(in srgb, ${palette.accent} 20%, transparent)`);
+  root.style.setProperty('--accent-40', `color-mix(in srgb, ${palette.accent} 40%, transparent)`);
+
+  root.setAttribute('data-theme', theme.id);
+  root.setAttribute('data-mode', actualMode);
+};

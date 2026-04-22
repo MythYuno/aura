@@ -72,7 +72,7 @@ export const Tutorial = ({ onDone }) => {
             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
             rx="16"
             fill="none"
-            stroke="var(--ok)"
+            stroke="var(--accent)"
             strokeWidth="2"
             strokeDasharray="6 4"
             style={{ filter: 'drop-shadow(0 0 12px var(--accent-glow))' }}
@@ -88,7 +88,7 @@ export const Tutorial = ({ onDone }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute left-1/2 -translate-x-1/2 max-w-sm w-[calc(100%-32px)] bg-bg-1 border border-bd-2 rounded-3xl p-5 shadow-2xl backdrop-blur-xl"
+          className="absolute left-1/2 -translate-x-1/2 max-w-sm w-[calc(100%-32px)] bg-glass border border-glass-bd-2 rounded-3xl p-5 shadow-2xl backdrop-blur-xl"
           style={{
             bottom: 'calc(110px + env(safe-area-inset-bottom))',
           }}
@@ -102,14 +102,14 @@ export const Tutorial = ({ onDone }) => {
                   className="h-1 rounded-full transition-all duration-500"
                   style={{
                     width: i === step ? 24 : 14,
-                    background: i <= step ? 'var(--ok)' : 'var(--fg-5)',
+                    background: i <= step ? 'var(--accent)' : 'var(--fg-5)',
                   }}
                 />
               ))}
             </div>
             <button
               onClick={onDone}
-              className="w-8 h-8 rounded-lg hover:bg-bg-2 flex items-center justify-center text-fg-4 hover:text-fg-1 transition-colors"
+              className="w-8 h-8 rounded-lg hover:bg-glass flex items-center justify-center text-fg-4 hover:text-fg transition-colors"
             >
               <X size={14} />
             </button>

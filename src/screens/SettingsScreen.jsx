@@ -83,7 +83,7 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
       {/* Theme Picker */}
       <Card padding="md" delay={0.1} className="col-span-2">
         <div className="flex items-center gap-2 mb-4">
-          <Palette size={14} className="text-ok" />
+          <Palette size={14} className="text-accent" />
           <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4">Tema Visivo</div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
@@ -99,12 +99,12 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
                 onClick={() => { haptic('medium'); setThemeId(t.id); }}
                 className={cn(
                   'relative p-3.5 rounded-2xl text-left transition-all border overflow-hidden',
-                  isSel ? 'bg-ok/10 border-ok/20' : 'bg-bg-2 border-bd-1 hover:border-bd-2'
+                  isSel ? 'bg-accent/10 border-accent/20' : 'bg-glass border-glass-bd hover:border-glass-bd-2'
                 )}
               >
                 {isSel && (
                   <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-                       style={{ background: 'var(--ok)' }}>
+                       style={{ background: 'var(--accent)' }}>
                     <Check size={10} strokeWidth={3} className="text-black" />
                   </div>
                 )}
@@ -122,7 +122,7 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
                     />
                   ))}
                 </div>
-                <div className={cn('text-[13px] font-bold mb-0.5', isSel && 'text-ok')}>{t.name}</div>
+                <div className={cn('text-[13px] font-bold mb-0.5', isSel && 'text-accent')}>{t.name}</div>
                 <div className="text-[10px] text-fg-4 leading-tight">{t.description}</div>
               </motion.button>
             );
@@ -148,11 +148,11 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
                 onClick={(e) => { haptic('light'); toggleMode(t.v, e); }}
                 className={cn(
                   'flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all',
-                  isSel ? 'bg-ok/10 border-ok/20' : 'bg-bg-2 border-bd-1 hover:border-bd-2'
+                  isSel ? 'bg-accent/10 border-accent/20' : 'bg-glass border-glass-bd hover:border-glass-bd-2'
                 )}
               >
-                <Ico size={16} className={isSel ? 'text-ok' : 'text-fg-3'} />
-                <span className={cn('text-[11px] font-semibold', isSel ? 'text-ok' : 'text-fg-3')}>{t.l}</span>
+                <Ico size={16} className={isSel ? 'text-accent' : 'text-fg-3'} />
+                <span className={cn('text-[11px] font-semibold', isSel ? 'text-accent' : 'text-fg-3')}>{t.l}</span>
               </motion.button>
             );
           })}
@@ -162,8 +162,8 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
       {/* Tutorial */}
       <Card onClick={onRestartTutorial} padding="md" delay={0.15} className="cursor-pointer">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-ok/10 border border-ok/20 flex items-center justify-center flex-shrink-0">
-            <HelpCircle size={18} className="text-ok" />
+          <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
+            <HelpCircle size={18} className="text-accent" />
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Rivedi Tutorial</div>
@@ -199,7 +199,7 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-2 p-4 rounded-xl bg-bg-1 border border-bd-1"
+                  className="mt-2 p-4 rounded-xl bg-glass border border-glass-bd"
                 >
                   <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Icona</div>
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -207,8 +207,8 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
                       <button key={ic} onClick={() => setCats((p) => p.map((c) => c.id === cat.id ? { ...c, icon: ic } : c))}
                               className="w-9 h-9 rounded-lg border flex items-center justify-center transition-all"
                               style={{
-                                background: cat.icon === ic ? `${cat.color}20` : 'var(--bg-2)',
-                                borderColor: cat.icon === ic ? `${cat.color}40` : 'var(--bd-1)',
+                                background: cat.icon === ic ? `${cat.color}20` : 'var(--glass)',
+                                borderColor: cat.icon === ic ? `${cat.color}40` : 'var(--glass-bd)',
                               }}>
                         <DynIcon name={ic} size={15} color={cat.icon === ic ? cat.color : 'var(--fg-4)'} />
                       </button>
@@ -234,7 +234,7 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
             </div>
           ))}
           <button onClick={() => { const id = String(uid()); setCats((p) => [...p, { id, label: 'Nuova', icon: 'Tag', color: '#888', weight: 0 }]); setShowCatEdit(id); }}
-                  className="w-full py-3 rounded-xl bg-bg-2 border border-dashed border-bd-2 text-fg-3 text-[12px] font-semibold hover:bg-bg-3 hover:border-bd-3 transition-all">
+                  className="w-full py-3 rounded-xl bg-glass border border-dashed border-glass-bd-2 text-fg-3 text-[12px] font-semibold hover:bg-glass-2 hover:border-glass-bd-2 transition-all">
             + Aggiungi Categoria
           </button>
         </div>
@@ -243,8 +243,8 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
       {/* Customize home */}
       <Card onClick={() => setShowWSet(true)} padding="md" delay={0.25} className="cursor-pointer">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-ok/10 border border-ok/20 flex items-center justify-center flex-shrink-0">
-            <LayoutGrid size={18} className="text-ok" />
+          <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
+            <LayoutGrid size={18} className="text-accent" />
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Personalizza Home</div>
@@ -311,9 +311,9 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
             const w = allWidgets.find((a) => a.id === wid);
             if (!w) return null;
             return (
-              <div key={w.id} className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-ok/5 border border-ok/10">
-                <div className="w-9 h-9 rounded-xl bg-ok/10 flex items-center justify-center">
-                  <DynIcon name={w.icon} size={15} color="var(--ok)" />
+              <div key={w.id} className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-accent/5 border border-accent/10">
+                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <DynIcon name={w.icon} size={15} color="var(--accent)" />
                 </div>
                 <div className="flex-1 text-[13px] font-semibold">{w.label}</div>
                 <button onClick={() => { haptic('warning'); setWidgets((p) => p.filter((x) => x !== w.id)); }}
@@ -330,12 +330,12 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
             <div className="flex flex-col gap-1.5">
               {allWidgets.filter((w) => !widgets.includes(w.id)).map((w) => (
                 <button key={w.id} onClick={() => { haptic('success'); setWidgets((p) => [...p, w.id]); }}
-                        className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-bg-2 border border-bd-1 text-left hover:bg-bg-3 transition-colors">
-                  <div className="w-9 h-9 rounded-xl bg-bg-3 flex items-center justify-center">
+                        className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-glass border border-glass-bd text-left hover:bg-glass-2 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-glass-2 flex items-center justify-center">
                     <DynIcon name={w.icon} size={15} color="var(--fg-3)" />
                   </div>
                   <div className="flex-1 text-[13px] font-semibold text-fg-3">{w.label}</div>
-                  <Plus size={16} className="text-ok" />
+                  <Plus size={16} className="text-accent" />
                 </button>
               ))}
             </div>
@@ -351,7 +351,7 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
               {importPreview.slice(0, 5).map((t, i) => {
                 const cat = cats.find((c) => c.id === t.cat);
                 return (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-bg-2 mb-1.5">
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-glass mb-1.5">
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold truncate">{t.label || cat?.label}</div>
                       <div className="text-[10px] text-fg-4">{new Date(t.ts).toLocaleDateString('it-IT')} · {cat?.label}</div>

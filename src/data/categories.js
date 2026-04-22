@@ -1,26 +1,59 @@
+/**
+ * AURA v4 — Categories
+ * All icons from lucide-react (professional, consistent strokes).
+ * Colors chosen to work on BOTH dark and light themes.
+ */
+
 export const defaultCats = [
-  { id: 'needs', label: 'Necessità', icon: 'Home', color: '#67E8F9', weight: 35, suggested: 35 },
-  { id: 'food', label: 'Cibo', icon: 'UtensilsCrossed', color: '#FDBA74', weight: 20, suggested: 20 },
-  { id: 'transport', label: 'Trasporti', icon: 'Car', color: '#93C5FD', weight: 10, suggested: 10 },
-  { id: 'health', label: 'Salute', icon: 'Heart', color: '#FCA5A5', weight: 5, suggested: 5 },
-  { id: 'wants', label: 'Desideri', icon: 'Sparkles', color: '#F0ABFC', weight: 15, suggested: 15 },
-  { id: 'fun', label: 'Svago', icon: 'PartyPopper', color: '#D8B4FE', weight: 10, suggested: 10 },
-  { id: 'vices', label: 'Vizi', icon: 'Flame', color: '#FDBA74', weight: 5, suggested: 5 },
+  { id: 'food', label: 'Cibo', icon: 'UtensilsCrossed', color: '#FB923C', weight: 30 },
+  { id: 'transport', label: 'Trasporti', icon: 'Car', color: '#60A5FA', weight: 15 },
+  { id: 'home', label: 'Casa', icon: 'Home', color: '#A78BFA', weight: 20 },
+  { id: 'health', label: 'Salute', icon: 'HeartPulse', color: '#F472B6', weight: 10 },
+  { id: 'fun', label: 'Svago', icon: 'Film', color: '#FDE047', weight: 10 },
+  { id: 'wants', label: 'Shopping', icon: 'ShoppingBag', color: '#22D3EE', weight: 8 },
+  { id: 'vices', label: 'Vizi', icon: 'Coffee', color: '#C084FC', weight: 4 },
+  { id: 'other', label: 'Altro', icon: 'Tag', color: '#A1A1AA', weight: 3 },
 ];
 
+/**
+ * Available colors for category editor.
+ * All tested for contrast on both dark and light glass surfaces.
+ */
 export const availableColors = [
-  '#67E8F9', '#F0ABFC', '#FDBA74', '#93C5FD', '#FCA5A5',
-  '#D8B4FE', '#FDE047', '#BEF264', '#5EEAD4', '#FB923C',
-  '#22D3EE', '#C084FC', '#F472B6', '#84CC16', '#FACC15',
-  '#F43F5E', '#60A5FA', '#34D399',
+  '#FB923C', '#F97316', // Orange
+  '#F472B6', '#EC4899', // Pink
+  '#C084FC', '#A78BFA', // Purple
+  '#60A5FA', '#3B82F6', // Blue
+  '#22D3EE', '#06B6D4', // Cyan
+  '#34D399', '#10B981', // Green
+  '#BEF264', '#84CC16', // Lime
+  '#FDE047', '#EAB308', // Yellow
+  '#F87171', '#EF4444', // Red
+  '#A1A1AA', '#71717A', // Gray
 ];
 
+/**
+ * All Lucide icon names users can pick from.
+ * Curated for expense tracking — food, transport, bills, leisure, health, etc.
+ */
 export const availableIcons = [
-  'Home', 'Star', 'Heart', 'Flame', 'Sparkles', 'Zap', 'Target', 'Coffee',
-  'Wallet', 'PiggyBank', 'Tag', 'Gift', 'ShoppingBag', 'ShoppingCart',
-  'Car', 'Plane', 'Train', 'Bike', 'UtensilsCrossed', 'Music', 'Phone', 'Wifi',
-  'Globe', 'Book', 'Briefcase', 'Camera', 'Film', 'Umbrella', 'Sun', 'Moon',
-  'Cloud', 'Droplets', 'Map', 'Gamepad2', 'Dumbbell', 'Pill', 'Baby', 'Shield',
-  'Key', 'Wrench', 'Scissors', 'DollarSign', 'Percent', 'Receipt', 'Calendar',
-  'Clock', 'Check', 'PartyPopper', 'Palette', 'Bell', 'BookOpen',
+  // Food & drink
+  'UtensilsCrossed', 'Pizza', 'Coffee', 'Wine', 'Beer', 'Apple', 'Cookie',
+  // Transport
+  'Car', 'Bus', 'Train', 'Plane', 'Bike', 'Fuel', 'ParkingCircle',
+  // Home & bills
+  'Home', 'Building2', 'Lightbulb', 'Flame', 'Droplet', 'Wifi', 'Plug',
+  // Shopping
+  'ShoppingBag', 'ShoppingCart', 'Gift', 'Shirt', 'Gem',
+  // Health & wellness
+  'HeartPulse', 'Stethoscope', 'Pill', 'Dumbbell', 'Activity',
+  // Leisure
+  'Film', 'Music', 'Gamepad2', 'Book', 'Camera', 'Headphones', 'PartyPopper',
+  // Tech
+  'Smartphone', 'Laptop', 'Cloud', 'Zap',
+  // Finance
+  'Wallet', 'CreditCard', 'PiggyBank', 'TrendingUp', 'DollarSign',
+  // Other
+  'Tag', 'Star', 'Heart', 'Sparkles', 'Target', 'Briefcase', 'GraduationCap',
+  'Baby', 'Dog', 'Cat', 'Scissors', 'Palette', 'Sun', 'Moon',
 ];

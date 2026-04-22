@@ -16,19 +16,19 @@ export const CreditsCard = ({ pendingCredits, totalPendingCredit, totalReceivedC
         <p className="text-[10px] uppercase tracking-widest text-fg-4 font-bold">Crediti & rimborsi</p>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="p-3 bg-bg-1 rounded-xl border border-bd-1">
+        <div className="p-3 bg-glass rounded-xl border border-glass-bd">
           <p className="text-[10px] uppercase text-fg-4 font-semibold mb-1">In attesa</p>
           <p className={cn('text-lg font-medium tnum', privacy && 'privacy-blur')} style={{ color: 'var(--teal)' }}>€{$d(totalPendingCredit)}</p>
         </div>
-        <div className="p-3 bg-bg-1 rounded-xl border border-bd-1">
+        <div className="p-3 bg-glass rounded-xl border border-glass-bd">
           <p className="text-[10px] uppercase text-fg-4 font-semibold mb-1">Ricevuti</p>
-          <p className={cn('text-lg font-medium tnum', privacy && 'privacy-blur')} style={{ color: 'var(--ok)' }}>€{$d(totalReceivedCredit)}</p>
+          <p className={cn('text-lg font-medium tnum', privacy && 'privacy-blur')} style={{ color: 'var(--accent)' }}>€{$d(totalReceivedCredit)}</p>
         </div>
       </div>
       {pendingCredits.slice(0, 4).map((t) => {
         const cat = cats.find((c) => c.id === t.cat);
         return (
-          <div key={t.id} className="flex items-center gap-2.5 py-2 border-t border-bd-1">
+          <div key={t.id} className="flex items-center gap-2.5 py-2 border-t border-glass-bd">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(94,234,212,0.1)' }}>
               <DynIcon name={cat?.icon || 'Circle'} size={12} className="text-teal" />
             </div>
@@ -66,7 +66,7 @@ export const DreamsCard = ({ dreams, privacy }) => {
                   €{$n(d.saved)} / €{$n(d.target)}
                 </p>
               </div>
-              <div className="h-1.5 bg-bg-2 rounded-full overflow-hidden mb-2">
+              <div className="h-1.5 bg-glass rounded-full overflow-hidden mb-2">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, pct)}%` }}
@@ -96,10 +96,10 @@ export const ExtraCard = ({ extraThisPeriod, privacy }) => {
     <Card padding="md" delay={0.35}>
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Plus size={14} className="text-ok" />
+          <Plus size={14} className="text-accent" />
           <p className="text-[10px] uppercase tracking-widest text-fg-4 font-bold">Entrate extra</p>
         </div>
-        <p className={cn('text-base font-semibold tnum', privacy && 'privacy-blur')} style={{ color: 'var(--ok)' }}>
+        <p className={cn('text-base font-semibold tnum', privacy && 'privacy-blur')} style={{ color: 'var(--accent)' }}>
           +€{$d(extraThisPeriod)}
         </p>
       </div>
@@ -129,7 +129,7 @@ export const QuickActionsBar = ({ quickActions, cats, addTx }) => {
   return (
     <div className="col-span-full">
       <p className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-2.5 px-1 flex items-center gap-2">
-        <Zap size={12} className="text-ok" />
+        <Zap size={12} className="text-accent" />
         Quick actions
       </p>
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
@@ -139,11 +139,11 @@ export const QuickActionsBar = ({ quickActions, cats, addTx }) => {
             <button
               key={qa.id}
               onClick={() => { haptic('medium'); addTx(qa.amount, qa.catId, qa.label); }}
-              className="flex-shrink-0 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full bg-bg-2 border border-bd-1 hover:bg-bg-3 hover:border-bd-2 transition-colors"
+              className="flex-shrink-0 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full bg-glass border border-glass-bd hover:bg-glass-2 hover:border-glass-bd-2 transition-colors"
             >
-              <DynIcon name={cat?.icon || 'Zap'} size={14} style={{ color: cat?.color || 'var(--ok)' }} />
+              <DynIcon name={cat?.icon || 'Zap'} size={14} style={{ color: cat?.color || 'var(--accent)' }} />
               <span className="text-xs font-medium">{qa.label}</span>
-              <span className="text-[11px] font-semibold tnum" style={{ color: cat?.color || 'var(--ok)' }}>€{$d(qa.amount)}</span>
+              <span className="text-[11px] font-semibold tnum" style={{ color: cat?.color || 'var(--accent)' }}>€{$d(qa.amount)}</span>
             </button>
           );
         })}

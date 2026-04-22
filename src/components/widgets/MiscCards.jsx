@@ -31,7 +31,7 @@ export const UpcomingCard = ({ upcoming, privacy }) => {
       </div>
       <div className="flex flex-col gap-2">
         {upcoming.slice(0, 3).map((d) => (
-          <div key={d.id} className="flex items-center gap-3 py-2.5 px-3 bg-bg-1 rounded-xl border border-bd-1">
+          <div key={d.id} className="flex items-center gap-3 py-2.5 px-3 bg-glass rounded-xl border border-glass-bd">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(253,224,71,0.08)' }}>
               <DynIcon name="Calendar" size={15} className="text-gold" />
             </div>
@@ -70,10 +70,10 @@ export const InsightsCard = ({ insights, weeklyInsight, privacy }) => {
       </div>
       <div className="space-y-2.5">
         {items.slice(0, 3).map((ins) => {
-          const colorMap = { info: 'var(--info)', red: 'var(--red)', orange: 'var(--orange)', ok: 'var(--ok)' };
+          const colorMap = { info: 'var(--info)', red: 'var(--red)', orange: 'var(--orange)', ok: 'var(--accent)' };
           const color = colorMap[ins.color] || 'var(--info)';
           return (
-            <div key={ins.id} className="flex gap-3 items-start py-2 px-3 rounded-xl bg-bg-1 border border-bd-1">
+            <div key={ins.id} className="flex gap-3 items-start py-2 px-3 rounded-xl bg-glass border border-glass-bd">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${color}20` }}>
                 <DynIcon name={ins.icon} size={13} style={{ color }} />
               </div>

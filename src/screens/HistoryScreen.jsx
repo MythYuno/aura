@@ -81,10 +81,10 @@ export const HistoryScreen = ({ store }) => {
             onClick={() => setView(v.id)}
             className={cn(
               'flex-1 py-2.5 px-2 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 transition-colors',
-              view === v.id ? 'bg-bg-3 text-fg-1' : 'text-fg-4 hover:text-fg-2'
+              view === v.id ? 'bg-glass-2 text-fg' : 'text-fg-4 hover:text-fg-2'
             )}
           >
-            <v.i size={13} className={view === v.id ? 'text-ok' : ''} />
+            <v.i size={13} className={view === v.id ? 'text-accent' : ''} />
             {v.l}
           </button>
         ))}
@@ -101,11 +101,11 @@ export const HistoryScreen = ({ store }) => {
                   onClick={() => setMonthOffset(m.offset)}
                   className="min-w-[90px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl flex-shrink-0 transition-colors"
                   style={{
-                    background: monthOffset === m.offset ? 'var(--ok-10)' : 'var(--bg-2)',
-                    border: `1px solid ${monthOffset === m.offset ? 'var(--ok-20)' : 'var(--bd-1)'}`,
+                    background: monthOffset === m.offset ? 'var(--accent-10)' : 'var(--glass)',
+                    border: `1px solid ${monthOffset === m.offset ? 'var(--accent-20)' : 'var(--glass-bd)'}`,
                   }}
                 >
-                  <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: monthOffset === m.offset ? 'var(--ok)' : 'var(--fg-4)' }}>
+                  <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: monthOffset === m.offset ? 'var(--accent)' : 'var(--fg-4)' }}>
                     {m.offset === 0 ? 'Ora' : m.label}
                   </span>
                   <span className={cn('text-[14px] font-semibold tnum', privacy && 'privacy-blur')}>€{$n(m.total)}</span>
@@ -116,15 +116,15 @@ export const HistoryScreen = ({ store }) => {
           </div>
 
           <div className="col-span-full grid grid-cols-3 gap-2">
-            <Card padding="md" delay={0.1} className="col-span-2" style={{ background: 'linear-gradient(135deg, var(--ok-10), rgba(255,255,255,0.02))', borderColor: 'var(--ok-20)' }}>
+            <Card padding="md" delay={0.1} className="col-span-2" style={{ background: 'linear-gradient(135deg, var(--accent-10), rgba(255,255,255,0.02))', borderColor: 'var(--accent-20)' }}>
               <p className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-2">
                 {selectedPeriod.start.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}
               </p>
-              <p className={cn('text-[26px] font-light tracking-tight tnum leading-none', privacy && 'privacy-blur')} style={{ color: 'var(--ok)' }}>
+              <p className={cn('text-[26px] font-light tracking-tight tnum leading-none', privacy && 'privacy-blur')} style={{ color: 'var(--accent)' }}>
                 €<NumberTicker value={monthTotal} decimals={2} />
               </p>
               {diffVsPrev !== null && (
-                <p className="text-[10px] mt-2 flex items-center gap-1" style={{ color: diffVsPrev < 0 ? 'var(--ok)' : 'var(--red)' }}>
+                <p className="text-[10px] mt-2 flex items-center gap-1" style={{ color: diffVsPrev < 0 ? 'var(--accent)' : 'var(--red)' }}>
                   {diffVsPrev > 0 ? '↑' : '↓'} {Math.abs(diffVsPrev).toFixed(0)}% vs mese prec.
                 </p>
               )}
@@ -160,9 +160,9 @@ export const HistoryScreen = ({ store }) => {
                   onClick={() => setActiveFilter(c.id)}
                   className="flex items-center gap-1.5 pl-3 pr-2 py-2 rounded-full text-[11px] font-semibold flex-shrink-0 transition-colors"
                   style={{
-                    background: activeFilter === c.id ? (c.color ? `${c.color}15` : 'var(--ok-10)') : 'var(--bg-2)',
-                    border: `1px solid ${activeFilter === c.id ? (c.color ? `${c.color}30` : 'var(--ok-20)') : 'var(--bd-1)'}`,
-                    color: activeFilter === c.id ? (c.color || 'var(--ok)') : 'var(--fg-2)',
+                    background: activeFilter === c.id ? (c.color ? `${c.color}15` : 'var(--accent-10)') : 'var(--glass)',
+                    border: `1px solid ${activeFilter === c.id ? (c.color ? `${c.color}30` : 'var(--accent-20)') : 'var(--glass-bd)'}`,
+                    color: activeFilter === c.id ? (c.color || 'var(--accent)') : 'var(--fg-2)',
                   }}
                 >
                   {c.icon && <DynIcon name={c.icon} size={12} />}
@@ -229,7 +229,7 @@ export const HistoryScreen = ({ store }) => {
                                   </span>
                                 )}
                                 {(t.tags || []).slice(0, 2).map((tag) => (
-                                  <span key={tag} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-bg-3 text-fg-3 font-mono">#{tag}</span>
+                                  <span key={tag} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-glass-2 text-fg-3 font-mono">#{tag}</span>
                                 ))}
                               </div>
                             </div>

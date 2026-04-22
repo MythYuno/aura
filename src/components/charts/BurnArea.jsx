@@ -42,8 +42,8 @@ export const BurnArea = ({ txs, periodStart, dayOfPeriod, daysInPeriod, freeBudg
             <stop offset="100%" stopColor="var(--pink)" stopOpacity={0} />
           </linearGradient>
           <linearGradient id="id-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--ok)" stopOpacity={0.12} />
-            <stop offset="100%" stopColor="var(--ok)" stopOpacity={0} />
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.12} />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 6" stroke="var(--bd-1)" vertical={false} />
@@ -65,7 +65,7 @@ export const BurnArea = ({ txs, periodStart, dayOfPeriod, daysInPeriod, freeBudg
         />
         <Tooltip
           contentStyle={{
-            background: 'var(--bg-1)',
+            background: 'var(--glass)',
             border: '1px solid var(--bd-2)',
             borderRadius: 12,
             fontSize: 12,
@@ -78,7 +78,7 @@ export const BurnArea = ({ txs, periodStart, dayOfPeriod, daysInPeriod, freeBudg
         <Area
           type="monotone"
           dataKey="ideal"
-          stroke="var(--ok)"
+          stroke="var(--accent)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
           fill="url(#id-area)"

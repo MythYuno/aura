@@ -5,7 +5,7 @@ import { useMemo } from 'react';
  * @param {Array} data - array of numbers
  * @param {string} color - stroke color
  */
-export const Sparkline = ({ data = [], color = 'var(--ok)', width = 80, height = 24, fill = true }) => {
+export const Sparkline = ({ data = [], color = 'var(--accent)', width = 80, height = 24, fill = true }) => {
   const { path, areaPath } = useMemo(() => {
     if (data.length < 2) return { path: '', areaPath: '' };
     const max = Math.max(...data);
