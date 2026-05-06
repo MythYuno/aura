@@ -1,13 +1,16 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Palette, LayoutGrid, Download, Upload, Trash2, HelpCircle, ChevronRight, Check, Plus, X } from 'lucide-react';
+import { Palette, LayoutGrid, Download, Upload, Trash2, HelpCircle, ChevronRight, Check, Plus, X, Database, Save, Sun, Moon } from 'lucide-react';
 import { Card } from '../components/ui/Card.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Sheet } from '../components/ui/Sheet.jsx';
+import { Confirm } from '../components/ui/Confirm.jsx';
 import { DynIcon } from '../components/ui/DynIcon.jsx';
 import { parseNum, uid, cn } from '../lib/format.js';
 import { haptic } from '../lib/haptic.js';
 import { exportCSV, parseCSVImport } from '../lib/csv.js';
+import { exportBackup, parseBackupFile, applyBackup } from '../lib/backup.js';
+import { useToast } from '../hooks/useUndoToast.js';
 import { availableIcons, availableColors } from '../data/categories.js';
 import { allWidgets } from '../data/widgets.js';
 import { themeList } from '../data/themes.js';
@@ -16,13 +19,29 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
   const {
     name, setName, salary, setSalary, resetDay, setResetDay,
     currentSavings, setCurrentSavings, cats, setCats, widgets, setWidgets,
-    themeId, setThemeId, txs, importTxs,
+    themeId, setThemeId, theme, setTheme, txs, importTxs,
   } = store;
 
+  const toast = useToast();
   const [showWSet, setShowWSet] = useState(false);
   const [showCatEdit, setShowCatEdit] = useState(null);
   const [importPreview, setImportPreview] = useState(null);
+  const [backupPreview, setBackupPreview] = useState(null);
+  const [backupError, setBackupError] = useState(null);
+  const [confirmReset, setConfirmReset] = useState(false);
   const fileInputRef = useRef(null);
+  const backupInputRef = useRef(null);
+
+  const doExportBackup = () => {
+    haptic('medium');
+    try {
+      exportBackup();
+      toast?.show?.('Backup scaricato', null);
+    } catch (err) {
+      setBackupError('Errore durante il backup');
+      setTimeout(() => setBackupError(null), 4000);
+    }
+  };
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
@@ -38,6 +57,33 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleBackupFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = parseBackupFile(ev.target.result);
+        setBackupError(null);
+        setBackupPreview(parsed);
+      } catch (err) {
+        setBackupError(err.message || 'File non valido');
+        setBackupPreview(null);
+        setTimeout(() => setBackupError(null), 4000);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const confirmRestore = () => {
+    if (!backupPreview) return;
+    haptic('success');
+    applyBackup(backupPreview.data);
+    setBackupPreview(null);
+    setTimeout(() => window.location.reload(), 100);
   };
 
   return (
@@ -74,6 +120,50 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
             <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Risparmi sul conto (€)</label>
             <input className="inp" type="text" inputMode="decimal" value={currentSavings}
                    onChange={(e) => setCurrentSavings(parseNum(e.target.value))} />
+          </div>
+        </div>
+      </Card>
+
+      {/* Light/Dark toggle */}
+      <Card padding="md" delay={0.08} className="col-span-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                 style={{ background: 'var(--accent-10)', border: '1px solid var(--accent-20)' }}>
+              {theme === 'light'
+                ? <Sun size={18} className="text-accent" aria-hidden="true" />
+                : <Moon size={18} className="text-accent" aria-hidden="true" />}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Modalità</div>
+              <div className="text-[11px] text-fg-4">{theme === 'light' ? 'Tema chiaro' : 'Tema scuro'}</div>
+            </div>
+          </div>
+          <div role="radiogroup" aria-label="Modalità chiaro/scuro" className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--glass)', border: '1px solid var(--glass-bd)' }}>
+            {[
+              { id: 'dark', label: 'Scuro', icon: Moon },
+              { id: 'light', label: 'Chiaro', icon: Sun },
+            ].map((m) => {
+              const sel = theme === m.id;
+              const Ico = m.icon;
+              return (
+                <button
+                  key={m.id}
+                  role="radio"
+                  aria-checked={sel}
+                  onClick={() => { haptic('light'); setTheme(m.id); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                  style={{
+                    background: sel ? 'var(--accent-10)' : 'transparent',
+                    border: `1px solid ${sel ? 'var(--accent-20)' : 'transparent'}`,
+                    color: sel ? 'var(--accent)' : 'var(--fg-3)',
+                  }}
+                >
+                  <Ico size={12} aria-hidden="true" />
+                  {m.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </Card>
@@ -223,18 +313,82 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
         </div>
       </Card>
 
+      {/* Backup section */}
+      <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mt-2 px-1">Backup</div>
+
+      {/* JSON Backup export */}
+      <Card
+        onClick={doExportBackup}
+        padding="md" delay={0.22}
+        className="cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doExportBackup(); } }}
+        aria-label="Esporta backup completo in formato JSON"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+               style={{ background: 'var(--accent-10)', border: '1px solid var(--accent-20)' }}>
+            <Save size={18} style={{ color: 'var(--accent)' }} aria-hidden="true" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Backup completo (JSON)</div>
+            <div className="text-[11px] text-fg-4">Tutto: spese, categorie, obiettivi, tema</div>
+          </div>
+          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
+        </div>
+      </Card>
+
+      {/* JSON Backup import */}
+      <Card
+        onClick={() => backupInputRef.current?.click()}
+        padding="md" delay={0.24}
+        className="cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); backupInputRef.current?.click(); } }}
+        aria-label="Ripristina da backup JSON"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+               style={{ background: 'rgba(216,180,254,0.1)', border: '1px solid rgba(216,180,254,0.2)' }}>
+            <Database size={18} style={{ color: 'var(--purple)' }} aria-hidden="true" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Ripristina backup</div>
+            <div className="text-[11px] text-fg-4">Sostituisce i dati attuali</div>
+          </div>
+          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
+        </div>
+      </Card>
+
+      {backupError && (
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-[12px] font-semibold px-3 py-2.5 rounded-xl"
+          style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--red)' }}
+          role="alert"
+        >
+          {backupError}
+        </motion.p>
+      )}
+
+      {/* CSV section */}
+      <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mt-2 px-1">CSV (solo transazioni)</div>
+
       {/* CSV Export */}
-      <Card onClick={() => exportCSV(txs, cats)} padding="md" delay={0.25} className="cursor-pointer">
+      <Card onClick={() => exportCSV(txs, cats)} padding="md" delay={0.26} className="cursor-pointer">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-teal/10 border border-teal/20 flex items-center justify-center flex-shrink-0"
                style={{ background: 'rgba(94,234,212,0.1)', borderColor: 'rgba(94,234,212,0.2)' }}>
-            <Download size={18} style={{ color: 'var(--teal)' }} />
+            <Download size={18} style={{ color: 'var(--teal)' }} aria-hidden="true" />
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Esporta CSV</div>
             <div className="text-[11px] text-fg-4">Scarica tutte le transazioni</div>
           </div>
-          <ChevronRight size={16} className="text-fg-5" />
+          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
         </div>
       </Card>
 
@@ -243,33 +397,72 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                style={{ background: 'rgba(103,232,249,0.1)', border: '1px solid rgba(103,232,249,0.2)' }}>
-            <Upload size={18} style={{ color: 'var(--info)' }} />
+            <Upload size={18} style={{ color: 'var(--info)' }} aria-hidden="true" />
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Importa CSV</div>
             <div className="text-[11px] text-fg-4">Carica transazioni da file</div>
           </div>
-          <ChevronRight size={16} className="text-fg-5" />
+          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
         </div>
       </Card>
 
       {/* Reset */}
       <motion.button
-        onClick={() => { haptic('warning'); onReset(); }}
+        onClick={() => { haptic('warning'); setConfirmReset(true); }}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
-        className="col-span-2 text-left p-5 rounded-2xl flex items-center gap-3 border"
+        aria-label="Reset di tutti i dati"
+        className="col-span-2 text-left p-5 rounded-2xl flex items-center gap-3 border transition-colors hover:bg-red/10"
         style={{ background: 'rgba(252,165,165,0.06)', borderColor: 'rgba(252,165,165,0.12)' }}
       >
-        <Trash2 size={20} className="text-red" />
+        <Trash2 size={20} className="text-red" aria-hidden="true" />
         <div>
           <div className="text-sm font-semibold text-red">Reset Dati</div>
           <div className="text-[11px] text-red/50">Cancella tutto e ricomincia</div>
         </div>
       </motion.button>
 
-      <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFile} className="hidden" />
+      <Confirm
+        open={confirmReset}
+        onClose={() => setConfirmReset(false)}
+        onConfirm={onReset}
+        title="Cancellare tutti i dati?"
+        msg="Verranno persi spese, abbonamenti, obiettivi e impostazioni. Esporta prima un backup se vuoi recuperarli."
+        danger
+      />
+
+      <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFile} className="hidden" aria-hidden="true" />
+      <input ref={backupInputRef} type="file" accept=".json,application/json" onChange={handleBackupFile} className="hidden" aria-hidden="true" />
+
+      {/* Backup restore confirmation */}
+      {backupPreview && (
+        <Sheet open={true} onClose={() => setBackupPreview(null)} title="Ripristina backup">
+          <div className="flex flex-col gap-4">
+            <p className="text-[12px] text-fg-3 leading-relaxed">
+              Questa operazione <strong className="text-red">sovrascriverà tutti i dati attuali</strong>. Continui?
+            </p>
+            <div className="rounded-2xl p-4 border" style={{ background: 'var(--glass)', borderColor: 'var(--glass-bd)' }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Contenuto backup</div>
+              <div className="grid grid-cols-2 gap-2 text-[12px]">
+                <div className="flex justify-between"><span className="text-fg-3">Profilo</span><span className="font-semibold truncate">{backupPreview.summary.name}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Stipendio</span><span className="font-semibold tnum">€{backupPreview.summary.salary}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Transazioni</span><span className="font-semibold tnum">{backupPreview.summary.txs}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Categorie</span><span className="font-semibold tnum">{backupPreview.summary.cats}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Spese fisse</span><span className="font-semibold tnum">{backupPreview.summary.fixed}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Abbonamenti</span><span className="font-semibold tnum">{backupPreview.summary.subscriptions}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Obiettivi</span><span className="font-semibold tnum">{backupPreview.summary.dreams}</span></div>
+                <div className="flex justify-between"><span className="text-fg-3">Versione</span><span className="font-semibold font-mono">{backupPreview.summary.version}</span></div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="default" size="lg" className="flex-1" onClick={() => setBackupPreview(null)}>Annulla</Button>
+              <Button variant="primary" size="lg" className="flex-1" onClick={confirmRestore}>Ripristina</Button>
+            </div>
+          </div>
+        </Sheet>
+      )}
 
       {/* Widget settings sheet */}
       <Sheet open={showWSet} onClose={() => setShowWSet(false)} title="Personalizza Home">

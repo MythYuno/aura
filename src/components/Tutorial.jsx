@@ -6,13 +6,13 @@ import { haptic } from '../lib/haptic.js';
 const STEPS = [
   {
     target: 'hero',
-    title: 'Budget giornaliero',
-    text: 'Quanto puoi spendere oggi. Si ricalcola automaticamente ad ogni spesa.',
+    title: 'Oggi puoi spendere',
+    text: 'Il tuo budget giornaliero — si ricalcola da solo ad ogni spesa. La barra in alto mostra quanto del budget mensile hai già consumato.',
   },
   {
     target: 'fab',
-    title: 'Aggiungi spesa',
-    text: 'Tocca il + per registrare una spesa. Veloce e offline.',
+    title: 'Tocca il + per registrare',
+    text: 'Importo, descrizione e via. AURA suggerisce la categoria in base alle tue spese passate (cerca il badge ✦ AUTO).',
   },
   {
     target: null,
@@ -22,22 +22,22 @@ const STEPS = [
   {
     target: 'nav-planner',
     title: 'Pianifica',
-    text: 'Spese fisse, abbonamenti, distribuzione budget.',
+    text: 'Stipendio, spese fisse, abbonamenti, obiettivi di risparmio. Vedi a colpo d’occhio dove vanno i tuoi soldi.',
   },
   {
     target: 'nav-history',
     title: 'Storico',
-    text: 'Tutte le transazioni. Confronta mese per mese.',
+    text: 'Tutte le transazioni con ricerca, filtri categoria e confronto mese-su-mese.',
   },
   {
     target: 'nav-settings',
     title: 'Setup',
-    text: 'Temi, categorie, widget, export CSV.',
+    text: 'Temi (incluso il nuovo Aurora), modalità chiaro/scuro, widget, backup completo in JSON o CSV.',
   },
   {
     target: null,
-    title: 'Pronto.',
-    text: 'I tuoi dati stanno solo sul tuo dispositivo. Zero cloud.',
+    title: 'Tutto sul tuo dispositivo',
+    text: 'Niente cloud, niente account, nessun tracker. Esporta un backup quando vuoi e ti porti via tutto.',
   },
 ];
 

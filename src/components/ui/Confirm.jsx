@@ -26,7 +26,9 @@ export const Confirm = ({ open, onClose, onConfirm, title, msg, danger = true })
                 className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1001] w-[90vw] max-w-sm bg-glass backdrop-blur-2xl border border-glass-bd-2 rounded-3xl p-6 shadow-2xl"
               >
                 <Dialog.Title className="text-lg font-semibold mb-2">{title}</Dialog.Title>
-                <p className="text-sm text-fg-3 mb-5 leading-relaxed">{msg}</p>
+                <Dialog.Description asChild>
+                  <p className="text-sm text-fg-3 mb-5 leading-relaxed">{msg}</p>
+                </Dialog.Description>
                 <div className="flex gap-2">
                   <Button variant="default" size="lg" className="flex-1" onClick={onClose}>
                     Annulla

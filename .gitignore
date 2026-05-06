@@ -5,3 +5,6 @@ dist
 .env
 .env.*
 .vite
+
+# Claude Code preview launcher (local-only)
+.claude/

@@ -28,6 +28,14 @@ const TABS = [
   { id: 'settings', label: 'Setup', icon: Settings, tut: 'nav-settings' },
 ];
 
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 5) return 'Notte fonda';
+  if (h < 12) return 'Buongiorno';
+  if (h < 18) return 'Buon pomeriggio';
+  return 'Buonasera';
+};
+
 export default function App() {
   const store = useStore();
   const bp = useBreakpoint();
@@ -36,10 +44,33 @@ export default function App() {
   const { toast, show, dismiss, undo } = useUndoToast();
 
   const [tab, setTab] = useState('home');
+  const prevTabIndex = useRef(0);
+  const [tabDir, setTabDir] = useState(1);
   const [addOpen, setAddOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
 
-  useTheme(store.themeId);
+  useTheme(store.themeId, store.theme);
+
+  // Honor PWA shortcut deep-link: /?action=add → opens AddExpenseSheet
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'add' && store.booted) {
+      setAddOpen(true);
+      params.delete('action');
+      const q = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (q ? '?' + q : ''));
+    }
+  }, [store.booted]);
+
+  // Compute slide direction (left/right) based on tab order — feels more spatial
+  const switchTab = (id) => {
+    const order = TABS.map((t) => t.id);
+    const next = order.indexOf(id);
+    setTabDir(next >= prevTabIndex.current ? 1 : -1);
+    prevTabIndex.current = next;
+    haptic('light');
+    setTab(id);
+  };
 
   useEffect(() => {
     if (store.booted && !store.tutorialSeen && store.txs.length === 0) {
@@ -54,7 +85,7 @@ export default function App() {
   };
 
   const restartTutorial = () => {
-    setTab('home');
+    switchTab('home');
     setTimeout(() => setShowTutorial(true), 300);
   };
 
@@ -104,24 +135,26 @@ export default function App() {
               <button
                 onClick={() => { haptic('medium'); setAddOpen(true); }}
                 data-tut="fab"
-                className="w-full py-3.5 px-4 rounded-2xl text-black font-semibold flex items-center justify-center gap-2 mb-5 text-sm"
+                aria-label="Aggiungi nuova spesa"
+                className="w-full py-3.5 px-4 rounded-2xl text-black font-semibold flex items-center justify-center gap-2 mb-5 text-sm transition-transform active:scale-[0.98]"
                 style={{
                   background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))',
                   boxShadow: '0 10px 30px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.2)',
                 }}
               >
-                <Plus size={17} strokeWidth={2.4} />
+                <Plus size={17} strokeWidth={2.4} aria-hidden="true" />
                 Nuova spesa
               </button>
 
-              <nav className="flex flex-col gap-1 flex-1">
+              <nav className="flex flex-col gap-1 flex-1" aria-label="Navigazione principale">
                 {TABS.map((t) => (
                   <motion.button
                     key={t.id}
                     data-tut={t.tut}
-                    onClick={() => { haptic('light'); setTab(t.id); }}
+                    onClick={() => switchTab(t.id)}
                     whileHover={{ x: 2 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    aria-current={tab === t.id ? 'page' : undefined}
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-[13px] font-medium',
                       tab === t.id ? 'text-fg' : 'text-fg-3 hover:text-fg'
@@ -132,7 +165,7 @@ export default function App() {
                       color: 'var(--accent)',
                     } : {}}
                   >
-                    <t.icon size={16} strokeWidth={tab === t.id ? 2.2 : 1.8} />
+                    <t.icon size={16} strokeWidth={tab === t.id ? 2.2 : 1.8} aria-hidden="true" />
                     <span className="font-semibold">{t.label}</span>
                   </motion.button>
                 ))}
@@ -142,16 +175,19 @@ export default function App() {
                 <button
                   data-tut="privacy"
                   onClick={() => { haptic('light'); store.setPrivacy(!store.privacy); }}
+                  aria-label={store.privacy ? 'Mostra importi' : 'Nascondi importi'}
+                  aria-pressed={store.privacy}
                   className="glass flex-1 py-2 rounded-xl text-fg-3 hover:text-fg transition-colors flex items-center justify-center gap-1.5 text-[10px] font-semibold"
                 >
-                  {store.privacy ? <EyeOff size={13} /> : <Eye size={13} />}
+                  {store.privacy ? <EyeOff size={13} aria-hidden="true" /> : <Eye size={13} aria-hidden="true" />}
                   {store.privacy ? 'Mostra' : 'Nascondi'}
                 </button>
                 <button
                   onClick={restartTutorial}
+                  aria-label="Apri tutorial"
                   className="glass flex-1 py-2 rounded-xl text-fg-3 hover:text-fg transition-colors flex items-center justify-center gap-1.5 text-[10px] font-semibold"
                 >
-                  <HelpCircle size={13} />
+                  <HelpCircle size={13} aria-hidden="true" />
                   Tutorial
                 </button>
               </div>
@@ -163,24 +199,26 @@ export default function App() {
             {/* Mobile header */}
             {!isDesktop && (
               <header
-                className="flex items-center justify-between px-5 pb-3 pt-4 z-10"
+                className="flex items-center justify-between px-5 pb-3 pt-4 z-10 sticky-fade"
                 style={{ paddingTop: 'max(16px, calc(env(safe-area-inset-top) + 10px))' }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <Logo size="sm" withText={false} />
                   {store.name && (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-fg-3">Benvenuto</p>
-                      <p className="text-sm font-semibold tracking-tight -mt-0.5">Ciao {store.name}</p>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-fg-4">{getGreeting()}</p>
+                      <p className="text-[15px] font-semibold tracking-tight -mt-0.5 leading-tight">{store.name}</p>
                     </div>
                   )}
                 </div>
                 <button
                   data-tut="privacy"
                   onClick={() => { haptic('light'); store.setPrivacy(!store.privacy); }}
-                  className="glass w-10 h-10 rounded-xl flex items-center justify-center text-fg-2 transition-colors"
+                  aria-label={store.privacy ? 'Mostra importi' : 'Nascondi importi'}
+                  aria-pressed={store.privacy}
+                  className="glass w-10 h-10 rounded-xl flex items-center justify-center text-fg-2 transition-colors active:scale-95"
                 >
-                  {store.privacy ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {store.privacy ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
                 </button>
               </header>
             )}
@@ -194,13 +232,19 @@ export default function App() {
               style={!isDesktop ? { paddingBottom: 'calc(95px + env(safe-area-inset-bottom))' } : undefined}
             >
               <div className={isDesktop ? 'max-w-6xl mx-auto' : ''}>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait" custom={tabDir} initial={false}>
                   <motion.div
                     key={tab}
-                    initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    custom={tabDir}
+                    variants={{
+                      enter: (d) => ({ opacity: 0, x: d * 28, filter: 'blur(6px)' }),
+                      center: { opacity: 1, x: 0, filter: 'blur(0px)' },
+                      exit: (d) => ({ opacity: 0, x: d * -22, filter: 'blur(4px)' }),
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {tab === 'home' && <HomeScreen store={store} />}
                     {tab === 'planner' && <PlannerScreen store={store} />}
@@ -216,10 +260,14 @@ export default function App() {
         {/* Mobile tabbar */}
         {!isDesktop && (
           <nav
-            className="fixed bottom-0 left-0 right-0 glass-2 border-t z-[100]"
+            className="fixed bottom-0 left-0 right-0 border-t z-[100]"
+            aria-label="Navigazione principale"
             style={{
-              borderColor: 'var(--glass-bd)',
+              borderColor: 'var(--glass-bd-2)',
               paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
+              background: 'color-mix(in srgb, var(--bg) 82%, transparent)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
             }}
           >
             <div className="flex items-center px-2 max-w-[500px] mx-auto">
@@ -227,18 +275,21 @@ export default function App() {
                 <button
                   key={t.id}
                   data-tut={t.tut}
-                  onClick={() => { haptic('light'); setTab(t.id); }}
+                  onClick={() => switchTab(t.id)}
+                  aria-label={t.label}
+                  aria-current={tab === t.id ? 'page' : undefined}
                   className="flex-1 flex flex-col items-center gap-1 py-2 px-1 relative transition-colors"
                   style={{ color: tab === t.id ? 'var(--accent)' : 'var(--fg-4)' }}
                 >
                   {tab === t.id && (
                     <motion.span
                       layoutId="tab-indicator"
-                      className="absolute top-0 w-6 h-[2px] rounded-full"
-                      style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent-glow)' }}
+                      className="absolute inset-x-2 top-0 bottom-0 -z-10 rounded-2xl"
+                      style={{ background: 'var(--accent-10)', border: '1px solid var(--accent-20)' }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <t.icon size={21} strokeWidth={tab === t.id ? 2.1 : 1.7} />
+                  <t.icon size={21} strokeWidth={tab === t.id ? 2.1 : 1.7} aria-hidden="true" />
                   <span className="text-[10px] font-semibold">{t.label}</span>
                 </button>
               ))}
@@ -250,13 +301,14 @@ export default function App() {
                   whileTap={{ scale: 0.88 }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                  aria-label="Aggiungi nuova spesa"
                   className="w-14 h-14 -mt-4 rounded-2xl flex items-center justify-center text-black fab-float"
                   style={{
                     background: 'linear-gradient(135deg, var(--accent), var(--accent-dim))',
                     boxShadow: '0 10px 32px var(--accent-glow), 0 0 0 4px var(--bg), inset 0 1px 0 rgba(255,255,255,0.2)',
                   }}
                 >
-                  <Plus size={24} strokeWidth={2.5} />
+                  <Plus size={24} strokeWidth={2.5} aria-hidden="true" />
                 </motion.button>
               </div>
 
@@ -264,18 +316,21 @@ export default function App() {
                 <button
                   key={t.id}
                   data-tut={t.tut}
-                  onClick={() => { haptic('light'); setTab(t.id); }}
+                  onClick={() => switchTab(t.id)}
+                  aria-label={t.label}
+                  aria-current={tab === t.id ? 'page' : undefined}
                   className="flex-1 flex flex-col items-center gap-1 py-2 px-1 relative transition-colors"
                   style={{ color: tab === t.id ? 'var(--accent)' : 'var(--fg-4)' }}
                 >
                   {tab === t.id && (
                     <motion.span
                       layoutId="tab-indicator"
-                      className="absolute top-0 w-6 h-[2px] rounded-full"
-                      style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent-glow)' }}
+                      className="absolute inset-x-2 top-0 bottom-0 -z-10 rounded-2xl"
+                      style={{ background: 'var(--accent-10)', border: '1px solid var(--accent-20)' }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <t.icon size={21} strokeWidth={tab === t.id ? 2.1 : 1.7} />
+                  <t.icon size={21} strokeWidth={tab === t.id ? 2.1 : 1.7} aria-hidden="true" />
                   <span className="text-[10px] font-semibold">{t.label}</span>
                 </button>
               ))}

@@ -17,7 +17,60 @@ const base = {
   warn: '#FBBF24',
 };
 
+// Light-mode token overrides applied on top of any theme.
+// Backgrounds and foregrounds invert, accent palette stays vivid.
+// Note: opacities pushed up vs dark mode — dark text on light bg needs more
+// contrast than light text on dark to stay readable at small sizes.
+const lightOverrides = {
+  glass: 'rgba(0,0,0,0.04)',
+  glass2: 'rgba(0,0,0,0.07)',
+  glassBd: 'rgba(0,0,0,0.1)',
+  glassBd2: 'rgba(0,0,0,0.18)',
+  fg: 'rgba(15,18,24,0.96)',
+  fg2: 'rgba(15,18,24,0.78)',
+  fg3: 'rgba(15,18,24,0.62)',
+  fg4: 'rgba(15,18,24,0.5)',
+  fg5: 'rgba(15,18,24,0.28)',
+};
+
+const lightBackgrounds = {
+  aurora: { bg: '#F4F8F7', mesh: 'radial-gradient(ellipse 65% 45% at 18% 0%, rgba(52,211,153,0.18) 0%, transparent 55%), radial-gradient(ellipse 55% 35% at 82% 30%, rgba(34,211,238,0.14) 0%, transparent 55%), radial-gradient(ellipse 50% 30% at 50% 100%, rgba(167,139,250,0.14) 0%, transparent 55%)' },
+  acid:   { bg: '#F6F7F4', mesh: 'radial-gradient(ellipse 70% 45% at 15% 0%, rgba(101,163,13,0.14) 0%, transparent 55%), radial-gradient(ellipse 55% 40% at 85% 100%, rgba(190,242,100,0.16) 0%, transparent 55%)' },
+  prism:  { bg: '#F5F4FA', mesh: 'radial-gradient(ellipse 70% 45% at 20% 0%, rgba(96,165,250,0.18) 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,0.18) 0%, transparent 55%)' },
+  sunset: { bg: '#FAF4F0', mesh: 'radial-gradient(ellipse 70% 45% at 15% 0%, rgba(251,146,60,0.18) 0%, transparent 55%), radial-gradient(ellipse 65% 40% at 85% 100%, rgba(244,114,182,0.16) 0%, transparent 55%)' },
+  ocean:  { bg: '#F0F5FA', mesh: 'radial-gradient(ellipse 75% 45% at 20% 0%, rgba(34,211,238,0.18) 0%, transparent 55%), radial-gradient(ellipse 65% 40% at 80% 100%, rgba(129,140,248,0.14) 0%, transparent 55%)' },
+  mono:   { bg: '#F5F5F5', mesh: 'radial-gradient(ellipse 70% 40% at 20% 0%, rgba(0,0,0,0.05) 0%, transparent 55%), radial-gradient(ellipse 60% 35% at 80% 100%, rgba(0,0,0,0.03) 0%, transparent 55%)' },
+};
+
 export const themes = {
+  aurora: {
+    id: 'aurora',
+    name: 'Aurora',
+    description: 'Verde · ciano · viola',
+    preview: ['#34D399', '#22D3EE', '#A78BFA'],
+    bg: '#06121A',
+    mesh: `
+      radial-gradient(ellipse 65% 45% at 18% 0%, rgba(52,211,153,0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 40% at 82% 30%, rgba(34,211,238,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 35% at 50% 100%, rgba(167,139,250,0.18) 0%, transparent 55%)
+    `,
+    accent: '#34D399',
+    accentDim: '#10B981',
+    glow: 'rgba(52,211,153,0.35)',
+    accent2: '#22D3EE',
+    logoFrom: '#34D399',
+    logoTo: '#A78BFA',
+    ok: '#34D399',
+    info: '#22D3EE',
+    pink: '#F472B6',
+    gold: '#FDE047',
+    blue: '#60A5FA',
+    purple: '#A78BFA',
+    orange: '#FB923C',
+    teal: '#5EEAD4',
+    ...base,
+  },
+
   acid: {
     id: 'acid',
     name: 'Acid Lime',
@@ -156,15 +209,29 @@ export const themes = {
 
 export const themeList = Object.values(themes);
 
-export const applyTheme = (themeId) => {
-  const theme = themes[themeId] || themes.acid;
+// "fg2" → "fg-2", "glassBd2" → "glass-bd-2", "accentDim" → "accent-dim".
+// Original code only handled camelCase; digits were left attached, so
+// `fg2` was being written to `--fg2` (a var nothing reads) instead of `--fg-2`.
+const toCssKey = (k) => k.replace(/(\d)/g, '-$1').replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
+
+export const applyTheme = (themeId, mode = 'dark') => {
+  const theme = themes[themeId] || themes.aurora;
   const root = document.documentElement;
+  const isLight = mode === 'light';
 
   Object.entries(theme).forEach(([key, value]) => {
     if (typeof value !== 'string') return;
-    const cssKey = key.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
-    root.style.setProperty(`--${cssKey}`, value);
+    root.style.setProperty(`--${toCssKey(key)}`, value);
   });
+
+  if (isLight) {
+    Object.entries(lightOverrides).forEach(([key, value]) => {
+      root.style.setProperty(`--${toCssKey(key)}`, value);
+    });
+    const lb = lightBackgrounds[theme.id] || lightBackgrounds.aurora;
+    root.style.setProperty('--bg', lb.bg);
+    root.style.setProperty('--mesh', lb.mesh);
+  }
 
   root.style.setProperty('--accent-glow', theme.glow);
   root.style.setProperty('--accent-10', `color-mix(in srgb, ${theme.accent} 10%, transparent)`);
@@ -172,5 +239,5 @@ export const applyTheme = (themeId) => {
   root.style.setProperty('--accent-40', `color-mix(in srgb, ${theme.accent} 40%, transparent)`);
 
   root.setAttribute('data-theme', theme.id);
-  root.setAttribute('data-mode', 'dark');
+  root.setAttribute('data-mode', isLight ? 'light' : 'dark');
 };

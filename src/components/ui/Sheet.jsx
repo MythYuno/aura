@@ -48,11 +48,13 @@ export const Sheet = ({ open, onClose, title, children, className = '' }) => {
                   {title && (
                     <div className="flex items-center justify-between mb-5">
                       <Dialog.Title className="text-xl font-semibold tracking-tight">{title}</Dialog.Title>
+                      <Dialog.Description className="sr-only">Pannello {title}</Dialog.Description>
                       <button
                         onClick={() => { haptic('light'); onClose?.(); }}
-                        className="glass w-9 h-9 rounded-xl flex items-center justify-center hover:bg-glass-2 transition-colors"
+                        aria-label="Chiudi"
+                        className="glass w-9 h-9 rounded-xl flex items-center justify-center hover:bg-glass-2 transition-colors active:scale-95"
                       >
-                        <X size={16} style={{ color: 'var(--fg-3)' }} />
+                        <X size={16} style={{ color: 'var(--fg-3)' }} aria-hidden="true" />
                       </button>
                     </div>
                   )}

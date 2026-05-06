@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { applyTheme } from '../data/themes.js';
 
-export const useTheme = (themeId) => {
+export const useTheme = (themeId, mode = 'dark') => {
   useEffect(() => {
-    applyTheme(themeId);
-  }, [themeId]);
+    applyTheme(themeId, mode);
+  }, [themeId, mode]);
 };

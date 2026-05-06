@@ -1,14 +1,27 @@
 {
-  "name": "AURA",
+  "name": "AURA — Finanze personali",
   "short_name": "AURA",
-  "description": "Tracker finanziario personale. Premium, privato.",
+  "description": "Tracker finanze personali. Privacy-first, offline-first, zero cloud.",
+  "lang": "it",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
-  "background_color": "#0A0A0F",
-  "theme_color": "#0A0A0F",
+  "background_color": "#06121A",
+  "theme_color": "#06121A",
+  "categories": ["finance", "productivity", "lifestyle"],
   "icons": [
-    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Aggiungi spesa",
+      "short_name": "Spesa",
+      "description": "Registra una spesa rapidamente",
+      "url": "./?action=add",
+      "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
   ]
 }

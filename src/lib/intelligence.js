@@ -9,12 +9,13 @@ export const computeLearningConfidence = (txs) => {
   if (!txs.length) return 0;
   const now = Date.now();
   const monthsMs = 30 * 864e5;
-  const oldest = Math.min(...txs.map((t) => t.ts));
+  // Use reduce instead of Math.min(...spread) — spread can blow the call stack on large arrays.
+  let oldest = txs[0].ts;
+  for (let i = 1; i < txs.length; i++) if (txs[i].ts < oldest) oldest = txs[i].ts;
   const ageMonths = (now - oldest) / monthsMs;
 
-  // Weighted by both time and count
-  const timeScore = Math.min(1, ageMonths / 3); // 3 months = full time score
-  const countScore = Math.min(1, txs.length / 50); // 50 tx = full count score
+  const timeScore = Math.min(1, ageMonths / 3);
+  const countScore = Math.min(1, txs.length / 50);
   return Math.max(timeScore * 0.6 + countScore * 0.4, 0);
 };
 
@@ -172,4 +173,41 @@ export const computeInsights = (txs, cats) => {
   }
 
   return insights.slice(0, 3);
+};
+
+/**
+ * Suggest a category for a new expense based on its description.
+ * Uses past transactions: if the description matches (token-overlap) past entries,
+ * pick the category that won most often. Falls back to null if no signal.
+ */
+const tokenize = (s) =>
+  String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length >= 3);
+
+export const suggestCategory = (label, txs, cats) => {
+  const tokens = tokenize(label);
+  if (tokens.length === 0) return null;
+  const tokenSet = new Set(tokens);
+
+  const scores = {};
+  for (let i = 0; i < txs.length; i++) {
+    const t = txs[i];
+    if (!t.label) continue;
+    const tt = tokenize(t.label);
+    let overlap = 0;
+    for (let j = 0; j < tt.length; j++) if (tokenSet.has(tt[j])) overlap++;
+    if (overlap === 0) continue;
+    scores[t.cat] = (scores[t.cat] || 0) + overlap;
+  }
+  const ids = Object.keys(scores);
+  if (ids.length === 0) return null;
+  ids.sort((a, b) => scores[b] - scores[a]);
+  const winner = ids[0];
+  // Make sure the winning category still exists
+  if (!cats.some((c) => c.id === winner)) return null;
+  return winner;
 };

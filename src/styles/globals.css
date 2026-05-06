@@ -70,6 +70,22 @@ body::before {
   transform: translateZ(0);
 }
 
+/* Subtle film grain — adds tactile depth without hurting performance.
+   Inlined SVG so no extra request; opacity tuned per mode. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+}
+[data-mode="light"] body::after { opacity: 0.05; mix-blend-mode: multiply; }
+@media (prefers-reduced-motion: reduce) { body::after { display: none; } }
+
 ::-webkit-scrollbar { width: 0; height: 0; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
@@ -146,6 +162,21 @@ body::before {
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
+}
+
+/* Top inner highlight — adds the "panel of glass" feel */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+}
+[data-mode="light"] .glass-card::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
 }
 
 /* On bigger viewports (desktop + tablet landscape), crank up the glass */
@@ -279,9 +310,11 @@ input[type=number] { -moz-appearance: textfield; }
   top: 0; left: 0; right: 0;
   height: 2px;
   background: linear-gradient(90deg, var(--accent), var(--info));
+  box-shadow: 0 0 12px var(--accent-glow);
   z-index: 9999;
   transform-origin: 0%;
   pointer-events: none;
+  opacity: 0.85;
 }
 
 /* Reduced motion */
@@ -296,8 +329,170 @@ input[type=number] { -moz-appearance: textfield; }
 .clickable { cursor: pointer; transition: opacity 0.2s var(--ease); }
 .clickable:active { opacity: 0.75; }
 
+/* Card lift — gentle elevation on hover (desktop only) */
+.card-lift {
+  transition: transform 0.35s var(--ease), border-color 0.35s var(--ease), box-shadow 0.35s var(--ease);
+  will-change: transform;
+}
+@media (hover: hover) {
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: var(--glass-bd-2);
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--glass-bd-2) inset;
+  }
+  [data-mode="light"] .card-lift:hover {
+    box-shadow: 0 22px 44px -22px rgba(15, 18, 24, 0.28), 0 0 0 1px var(--glass-bd-2) inset;
+  }
+}
+
+/* Accent halo — apply to a card to suggest "primary action" feel */
+.glow-accent {
+  position: relative;
+}
+.glow-accent::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--accent-20), transparent 50%, var(--accent-10));
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+  z-index: 0;
+}
+@media (hover: hover) {
+  .glow-accent:hover::before { opacity: 1; }
+}
+
 /* Logo gradient (per theme) */
 .logo-gradient {
   background: linear-gradient(135deg, var(--logo-from), var(--logo-to));
   box-shadow: 0 4px 16px var(--accent-glow);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FOCUS — keyboard-only ring (does not show on mouse click)
+   ═══════════════════════════════════════════════════════════ */
+
+*:focus { outline: none; }
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+.inp:focus-visible {
+  outline: none;
+  /* the .inp:focus rule already shows a custom ring via box-shadow */
+}
+
+/* Disabled state */
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Smooth opacity for primary disabled */
+.btn-primary-disabled {
+  filter: grayscale(0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ORB / DRIFT — subtle animated background blobs
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes orbDrift {
+  0%, 100% { transform: translate(30%, -35%) scale(1); }
+  50% { transform: translate(33%, -32%) scale(1.05); }
+}
+.orb-drift {
+  animation: orbDrift 14s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-drift { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shimmerSweep 3s ease-in-out infinite;
+}
+@keyframes shimmerSweep {
+  to { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after { animation: none; opacity: 0; }
+}
+
+/* Sticky-fade gradient under headers */
+.sticky-fade {
+  position: relative;
+}
+.sticky-fade::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -16px; height: 16px;
+  background: linear-gradient(to bottom, var(--bg), transparent);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   Activated by [data-mode="light"] on <html>.
+   ═══════════════════════════════════════════════════════════ */
+
+[data-mode="light"] .glass-card {
+  box-shadow: 0 12px 28px -16px rgba(15, 18, 24, 0.18), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+@media (min-width: 768px) and (hover: hover) {
+  [data-mode="light"] .glass-card {
+    box-shadow: 0 24px 48px -24px rgba(15, 18, 24, 0.25), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  }
+  [data-mode="light"] .glass-card::before {
+    background: linear-gradient(90deg, transparent, rgba(15, 18, 24, 0.08), transparent);
+  }
+}
+
+/* Drop-shadow on gradient text is too heavy on light bg */
+@media (hover: hover) {
+  [data-mode="light"] .text-gradient-accent {
+    filter: none;
+  }
+}
+
+/* Skeleton shimmer needs darker tint over white surface */
+[data-mode="light"] .skel {
+  background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.08), rgba(0,0,0,0.05));
+  background-size: 200% 100%;
+}
+
+/* Sheet/dialog overlays were tuned for dark — soften on light */
+[data-mode="light"] {
+  color-scheme: light;
+}
+
+/* Toast remains dark for contrast against any bg, but tweak in light if needed */
+[data-mode="light"] .scroll-progress {
+  opacity: 0.85;
+}
+
+/* FAB / primary buttons: black text reads fine on accent on both modes (accent stays vivid) */

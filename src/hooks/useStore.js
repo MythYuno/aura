@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { load, save } from '../lib/storage.js';
 import { realCost, uid, parseNum } from '../lib/format.js';
 import { computeSmartSuggestions, computeInsights, computeLearningConfidence, getLearningLevel, applySmartAllocation, compute503020 } from '../lib/intelligence.js';
@@ -6,9 +6,35 @@ import { haptic } from '../lib/haptic.js';
 import { defaultCats } from '../data/categories.js';
 import { defaultWidgets } from '../data/widgets.js';
 
+const startOfDay = (d = new Date()) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+
 export const useStore = () => {
   const stored = useMemo(() => load(), []);
   const [booted, setBooted] = useState(!!stored);
+
+  // Stable "today" anchor — refreshes only at midnight crossing.
+  // Prevents useMemo invalidation on every render (was: `const now = new Date()` at top-level).
+  const [todayKey, setTodayKey] = useState(() => startOfDay().getTime());
+  useEffect(() => {
+    const tick = () => {
+      const k = startOfDay().getTime();
+      if (k !== todayKey) setTodayKey(k);
+    };
+    const next = startOfDay();
+    next.setDate(next.getDate() + 1);
+    const ms = Math.max(1000, next.getTime() - Date.now() + 500);
+    const t = setTimeout(tick, ms);
+    const visHandler = () => { if (document.visibilityState === 'visible') tick(); };
+    document.addEventListener('visibilitychange', visHandler);
+    return () => { clearTimeout(t); document.removeEventListener('visibilitychange', visHandler); };
+  }, [todayKey]);
+  // `now` is the start-of-today timestamp, stable across renders within the same day.
+  // Day-granularity is sufficient for budgeting (period boundaries, streaks, monthly history).
+  const now = useMemo(() => new Date(todayKey), [todayKey]);
 
   const [name, setName] = useState(stored?.name || '');
   const [salary, setSalary] = useState(stored?.salary || 0);
@@ -33,20 +59,49 @@ export const useStore = () => {
   const [privacy, setPrivacy] = useState(false);
   const [tutorialSeen, setTutorialSeen] = useState(stored?.tutorialSeen || false);
 
+  // Debounced save: collapses bursts (slider drags, rapid toggles) into one write.
+  // Flushes on unmount/visibility change to avoid losing the last edit.
+  const saveTimer = useRef(null);
+  const pendingSave = useRef(null);
   useEffect(() => {
     if (!booted) return;
-    save({
+    pendingSave.current = {
       name, salary, resetDay, currentSavings, cats, txs, fixed, quickActions,
       dreams, buffer, widgets, theme, themeId, extraIncomes, subscriptions,
       rolloverTarget, rolloverHistory, celebrated, tutorialSeen,
-    });
+    };
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      if (pendingSave.current) save(pendingSave.current);
+      pendingSave.current = null;
+    }, 250);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [
     name, salary, resetDay, currentSavings, cats, txs, fixed, quickActions,
     dreams, buffer, widgets, booted, theme, themeId, extraIncomes, subscriptions,
     rolloverTarget, rolloverHistory, celebrated, tutorialSeen,
   ]);
 
-  const now = new Date();
+  useEffect(() => {
+    const flush = () => {
+      if (pendingSave.current) {
+        save(pendingSave.current);
+        pendingSave.current = null;
+        if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+      }
+    };
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
+    window.addEventListener('beforeunload', flush);
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      flush();
+      window.removeEventListener('beforeunload', flush);
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onHide);
+    };
+  }, []);
+
   const computePeriod = (offset = 0) => {
     const d = new Date(now.getFullYear(), now.getMonth(), resetDay);
     if (d > now) d.setMonth(d.getMonth() - 1);
@@ -56,8 +111,8 @@ export const useStore = () => {
     return { start: d, end };
   };
 
-  const periodStart = useMemo(() => computePeriod(0).start, [resetDay, now.getMonth(), now.getDate()]);
-  const periodEnd = useMemo(() => computePeriod(0).end, [resetDay, now.getMonth(), now.getDate()]);
+  const periodStart = useMemo(() => computePeriod(0).start, [resetDay, todayKey]);
+  const periodEnd = useMemo(() => computePeriod(0).end, [resetDay, todayKey]);
   const daysInPeriod = useMemo(() => Math.max(1, Math.round((periodEnd - periodStart) / 864e5)), [periodStart, periodEnd]);
   const dayOfPeriod = useMemo(() => Math.max(1, Math.min(daysInPeriod, Math.ceil((now - periodStart) / 864e5))), [periodStart, daysInPeriod]);
   const daysLeft = useMemo(() => Math.max(1, daysInPeriod - dayOfPeriod + 1), [daysInPeriod, dayOfPeriod]);
@@ -112,16 +167,17 @@ export const useStore = () => {
   const upcomingDeductions = useMemo(() => {
     const all = [];
     const nowDay = now.getDate();
+    const nowMonth = now.getMonth() + 1;
     [...fixed, ...subscriptions.map((s) => ({ ...s, type: 'subscription' }))].forEach((item) => {
       if (item.active === false) return;
-      if (item.type === 'annual' && item.deductMonth !== now.getMonth() + 1) return;
+      if (item.type === 'annual' && item.deductMonth !== nowMonth) return;
       const dDay = item.deductDay || 1;
       let daysUntil = dDay - nowDay;
       if (daysUntil < 0) daysUntil += 30;
       if (daysUntil <= 3 && daysUntil >= 0) all.push({ ...item, daysUntil });
     });
     return all.sort((a, b) => a.daysUntil - b.daysUntil);
-  }, [fixed, subscriptions, now]);
+  }, [fixed, subscriptions, todayKey]);
 
   const weeklyInsight = useMemo(() => {
     const weekStart = new Date();
@@ -191,7 +247,7 @@ export const useStore = () => {
       arr.push({ offset: i, start: p.start, end: p.end, total, label, txCount: mTxs.length });
     }
     return arr;
-  }, [txs, resetDay, now.getMonth(), now.getDate()]);
+  }, [txs, resetDay, todayKey]);
 
   const pendingCredits = useMemo(() => pTxs.filter((t) => t.credit > 0 && !t.creditReceived), [pTxs]);
   const totalPendingCredit = useMemo(() => pendingCredits.reduce((a, t) => a + t.credit, 0), [pendingCredits]);

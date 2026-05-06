@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, AlertCircle, Sparkles } from 'lucide-react';
 import { Sheet } from '../components/ui/Sheet.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { DynIcon } from '../components/ui/DynIcon.jsx';
 import { parseNum, $d, cn } from '../lib/format.js';
 import { haptic } from '../lib/haptic.js';
+import { suggestCategory } from '../lib/intelligence.js';
 
 export const AddExpenseSheet = ({ open, onClose, store }) => {
-  const { cats, addTx } = store;
+  const { cats, addTx, txs } = store;
   const [val, setVal] = useState('');
   const [label, setLabel] = useState('');
   const [catId, setCatId] = useState('');
+  const [touchedCat, setTouchedCat] = useState(false);
   const [isCredit, setIsCredit] = useState(false);
   const [creditAmt, setCreditAmt] = useState('');
   const [tags, setTags] = useState('');
@@ -20,16 +22,38 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
     if (open && !catId && cats[0]) setCatId(cats[0].id);
   }, [open, cats, catId]);
 
+  // Smart auto-pick of category from description (only if user hasn't manually picked)
+  const suggestedCat = useMemo(
+    () => suggestCategory(label, txs, cats),
+    [label, txs, cats]
+  );
+  useEffect(() => {
+    if (!open) return;
+    if (touchedCat) return;
+    if (!suggestedCat) return;
+    if (suggestedCat !== catId) setCatId(suggestedCat);
+  }, [open, touchedCat, suggestedCat, catId]);
+
   const reset = () => {
     setVal(''); setLabel(''); setCatId(cats[0]?.id || '');
+    setTouchedCat(false);
     setIsCredit(false); setCreditAmt(''); setTags('');
   };
 
+  // Validation: detect "abc" / "10,5,3" garbage so we can warn instead of silent 0
+  const valTrim = val.trim();
+  const amount = parseNum(val);
+  const valLooksValid = valTrim === '' || /^[€\s]*\d+([.,]\d+)?[€\s]*$/.test(valTrim);
+  const valError = valTrim !== '' && (!valLooksValid || amount <= 0);
+  const creditTrim = creditAmt.trim();
+  const creditNum = parseNum(creditAmt);
+  const creditError = isCredit && creditTrim !== '' && (creditNum <= 0 || creditNum > amount);
+  const canSubmit = amount > 0 && !!catId && !valError && !creditError;
+
   const handleSubmit = () => {
-    const a = parseNum(val);
-    if (a <= 0 || !catId) return;
+    if (!canSubmit) return;
     const tagsArr = tags.split(/[,\s]+/).map((t) => t.replace(/^#/, '').trim()).filter(Boolean);
-    addTx(a, catId, label, isCredit ? parseNum(creditAmt) : 0, tagsArr);
+    addTx(amount, catId, label, isCredit ? creditNum : 0, tagsArr);
     reset();
     onClose();
   };
@@ -42,10 +66,30 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
           <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Importo totale (€)</label>
           <input
             className="inp text-center tnum text-[28px] py-5 font-light"
-            style={{ color: 'var(--accent)' }}
+            style={{
+              color: valError ? 'var(--red)' : 'var(--accent)',
+              borderColor: valError ? 'rgba(248,113,113,0.5)' : undefined,
+            }}
             type="text" inputMode="decimal" placeholder="0,00"
+            aria-invalid={valError || undefined}
+            aria-describedby={valError ? 'amount-error' : undefined}
             value={val} onChange={(e) => setVal(e.target.value)} autoFocus
           />
+          <AnimatePresence>
+            {valError && (
+              <motion.p
+                id="amount-error"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-1.5 mt-2 text-[11px] font-medium"
+                style={{ color: 'var(--red)' }}
+              >
+                <AlertCircle size={12} />
+                Inserisci un importo valido (es. 12,50)
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Description */}
@@ -56,20 +100,38 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
 
         {/* Category */}
         <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Categoria</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4">Categoria</label>
+            {!touchedCat && suggestedCat && label.trim() && (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-1 text-[10px] font-bold tracking-wide"
+                style={{ color: 'var(--accent)' }}
+              >
+                <Sparkles size={11} />
+                AUTO
+              </motion.span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Categoria">
             {cats.map((c) => {
               const sel = catId === c.id;
+              const isAuto = sel && !touchedCat && suggestedCat === c.id && label.trim();
               return (
                 <motion.button
                   key={c.id}
                   whileTap={{ scale: 0.94 }}
-                  onClick={() => { haptic('light'); setCatId(c.id); }}
-                  className="px-3.5 py-2.5 rounded-xl border flex items-center gap-2 text-[12px] font-semibold transition-all"
+                  onClick={() => { haptic('light'); setTouchedCat(true); setCatId(c.id); }}
+                  role="radio"
+                  aria-checked={sel}
+                  aria-label={`Categoria ${c.label}`}
+                  className="px-3.5 py-2.5 rounded-xl border flex items-center gap-2 text-[12px] font-semibold transition-all relative"
                   style={{
                     background: sel ? `${c.color}20` : 'var(--glass)',
                     borderColor: sel ? `${c.color}40` : 'var(--glass-bd)',
                     color: sel ? c.color : 'var(--fg-3)',
+                    boxShadow: isAuto ? `0 0 0 2px ${c.color}30` : undefined,
                   }}
                 >
                   <DynIcon name={c.icon} size={14} color={sel ? c.color : 'var(--fg-4)'} />
@@ -128,19 +190,38 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
                      style={{ color: 'var(--teal)' }}>
                 Quanto ti verrà rimborsato? (€)
               </label>
-              <input className="inp" type="text" inputMode="decimal" placeholder="es. 40" value={creditAmt} onChange={(e) => setCreditAmt(e.target.value)} />
-              {parseNum(val) > 0 && parseNum(creditAmt) > 0 && (
+              <input
+                className="inp" type="text" inputMode="decimal" placeholder="es. 40"
+                value={creditAmt} onChange={(e) => setCreditAmt(e.target.value)}
+                aria-invalid={creditError || undefined}
+                style={creditError ? { borderColor: 'rgba(248,113,113,0.5)' } : undefined}
+              />
+              <AnimatePresence>
+                {creditError && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex items-center gap-1.5 mt-2 text-[11px] font-medium"
+                    style={{ color: 'var(--red)' }}
+                  >
+                    <AlertCircle size={12} />
+                    {creditNum > amount ? "Il rimborso non può superare l'importo" : 'Inserisci un valore valido'}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              {amount > 0 && creditNum > 0 && !creditError && (
                 <div className="flex justify-between mt-3 p-3 rounded-xl" style={{ background: 'rgba(94,234,212,0.06)' }}>
                   <div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4">Costo reale</div>
                     <div className="tnum text-[16px] font-bold" style={{ color: 'var(--accent)' }}>
-                      €{$d(Math.max(0, parseNum(val) - parseNum(creditAmt)))}
+                      €{$d(Math.max(0, amount - creditNum))}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4">Ti torna</div>
                     <div className="tnum text-[16px] font-bold" style={{ color: 'var(--teal)' }}>
-                      €{$d(parseNum(creditAmt))}
+                      €{$d(creditNum)}
                     </div>
                   </div>
                 </div>
@@ -158,7 +239,10 @@ export const AddExpenseSheet = ({ open, onClose, store }) => {
           paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
         }}
       >
-        <Button variant="primary" size="xl" onClick={handleSubmit} haptic="success" className="w-full">
+        <Button
+          variant="primary" size="xl" onClick={handleSubmit} haptic="success"
+          className="w-full" disabled={!canSubmit}
+        >
           Registra Spesa
         </Button>
       </div>
