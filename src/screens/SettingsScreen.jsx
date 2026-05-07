@@ -1,30 +1,38 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Palette, LayoutGrid, Download, Upload, Trash2, HelpCircle, ChevronRight, Check, Plus, X, Database, Save, Sun, Moon } from 'lucide-react';
 import { Card } from '../components/ui/Card.jsx';
 import { Button } from '../components/ui/Button.jsx';
-import { Sheet } from '../components/ui/Sheet.jsx';
 import { Confirm } from '../components/ui/Confirm.jsx';
-import { DynIcon } from '../components/ui/DynIcon.jsx';
+import { Sheet } from '../components/ui/Sheet.jsx';
+import {
+  IcChevR, IcCheck, IcX, IcPlus, IcEdit, IcSpark,
+} from '../lib/icons.jsx';
+import { iconForCategory } from '../lib/icons.jsx';
 import { parseNum, uid, cn } from '../lib/format.js';
 import { haptic } from '../lib/haptic.js';
 import { exportCSV, parseCSVImport } from '../lib/csv.js';
 import { exportBackup, parseBackupFile, applyBackup } from '../lib/backup.js';
 import { useToast } from '../hooks/useUndoToast.js';
-import { availableIcons, availableColors } from '../data/categories.js';
-import { allWidgets } from '../data/widgets.js';
+import { availableColors } from '../data/categories.js';
 import { themeList } from '../data/themes.js';
 
-export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
+/**
+ * Settings — opens as a sheet from the top-left avatar.
+ * Sections: profile · theme · mode · home-categories · backup · advanced.
+ * "Rivedi tutorial" resets tutorialState so the next screen visits replay.
+ */
+export const SettingsScreen = ({ store, onReset, onClose }) => {
+  const toast = useToast();
   const {
     name, setName, salary, setSalary, resetDay, setResetDay,
-    currentSavings, setCurrentSavings, cats, setCats, widgets, setWidgets,
+    cats, setCats, homeCats, setHomeCats,
     themeId, setThemeId, theme, setTheme, txs, importTxs,
+    catRules, removeCatRule,
+    resetAllTutorials,
   } = store;
 
-  const toast = useToast();
-  const [showWSet, setShowWSet] = useState(false);
   const [showCatEdit, setShowCatEdit] = useState(null);
+  const [showHomePicker, setShowHomePicker] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
   const [backupPreview, setBackupPreview] = useState(null);
   const [backupError, setBackupError] = useState(null);
@@ -32,52 +40,28 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
   const fileInputRef = useRef(null);
   const backupInputRef = useRef(null);
 
-  const doExportBackup = () => {
-    haptic('medium');
-    try {
-      exportBackup();
-      toast?.show?.('Backup scaricato', null);
-    } catch (err) {
-      setBackupError('Errore durante il backup');
-      setTimeout(() => setBackupError(null), 4000);
-    }
-  };
-
-  const handleFile = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const parsed = parseCSVImport(ev.target.result, cats);
-        setImportPreview(parsed);
-      } catch (err) {
-        alert('Errore nel leggere il CSV');
-      }
+  const handleCSV = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      try { setImportPreview(parseCSVImport(ev.target.result, cats)); }
+      catch { toast?.show?.('Errore lettura CSV', null); }
     };
-    reader.readAsText(file);
+    r.readAsText(f);
     e.target.value = '';
   };
-
-  const handleBackupFile = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const parsed = parseBackupFile(ev.target.result);
-        setBackupError(null);
-        setBackupPreview(parsed);
-      } catch (err) {
-        setBackupError(err.message || 'File non valido');
-        setBackupPreview(null);
-        setTimeout(() => setBackupError(null), 4000);
-      }
+  const handleBackup = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      try { setBackupPreview(parseBackupFile(ev.target.result)); setBackupError(null); }
+      catch (err) { setBackupError(err.message); setTimeout(() => setBackupError(null), 4000); }
     };
-    reader.readAsText(file);
+    r.readAsText(f);
     e.target.value = '';
   };
-
   const confirmRestore = () => {
     if (!backupPreview) return;
     haptic('success');
@@ -85,344 +69,264 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
     setBackupPreview(null);
     setTimeout(() => window.location.reload(), 100);
   };
+  const doExportBackup = () => {
+    haptic('medium');
+    try { exportBackup(); toast?.show?.('Backup scaricato', null); }
+    catch { toast?.show?.('Errore esportazione', null); }
+  };
+
+  const replayTutorials = () => {
+    haptic('light');
+    resetAllTutorials();
+    onClose?.();
+    toast?.show?.('Tutorial pronto · cambia schermata per vederlo', null);
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Title */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
-        <h1 className="text-[26px] font-light tracking-tight">Impostazioni</h1>
-      </motion.div>
+    <div className="flex flex-col gap-4 pb-4">
 
       {/* Profile */}
-      <Card padding="md" delay={0.05} className="col-span-2">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-4">Profilo</div>
-        <div className="flex flex-col gap-3">
+      <Card padding="md">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Profilo</div>
+        <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-1.5">Nome</label>
+        <input className="inp mb-3" value={name} onChange={(e) => setName(e.target.value)} />
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Nome</label>
-            <input className="inp" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Stipendio</label>
-              <input className="inp" type="text" inputMode="decimal" value={salary}
-                     onChange={(e) => setSalary(parseNum(e.target.value))} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Reset day</label>
-              <input className="inp" type="number" min={1} max={28} value={resetDay}
-                     onChange={(e) => setResetDay(parseInt(e.target.value) || 1)} />
-            </div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-1.5">Stipendio</label>
+            <input className="inp" type="text" inputMode="decimal" value={salary} onChange={(e) => setSalary(parseNum(e.target.value))} />
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Risparmi sul conto (€)</label>
-            <input className="inp" type="text" inputMode="decimal" value={currentSavings}
-                   onChange={(e) => setCurrentSavings(parseNum(e.target.value))} />
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-1.5">Giorno paga</label>
+            <input className="inp" type="number" min={1} max={28} value={resetDay} onChange={(e) => setResetDay(parseInt(e.target.value) || 1)} />
           </div>
         </div>
       </Card>
 
-      {/* Light/Dark toggle */}
-      <Card padding="md" delay={0.08} className="col-span-2">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                 style={{ background: 'var(--accent-10)', border: '1px solid var(--accent-20)' }}>
-              {theme === 'light'
-                ? <Sun size={18} className="text-accent" aria-hidden="true" />
-                : <Moon size={18} className="text-accent" aria-hidden="true" />}
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-semibold">Modalità</div>
-              <div className="text-[11px] text-fg-4">{theme === 'light' ? 'Tema chiaro' : 'Tema scuro'}</div>
-            </div>
-          </div>
-          <div role="radiogroup" aria-label="Modalità chiaro/scuro" className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--glass)', border: '1px solid var(--glass-bd)' }}>
-            {[
-              { id: 'dark', label: 'Scuro', icon: Moon },
-              { id: 'light', label: 'Chiaro', icon: Sun },
-            ].map((m) => {
-              const sel = theme === m.id;
-              const Ico = m.icon;
-              return (
-                <button
-                  key={m.id}
-                  role="radio"
-                  aria-checked={sel}
-                  onClick={() => { haptic('light'); setTheme(m.id); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                  style={{
-                    background: sel ? 'var(--accent-10)' : 'transparent',
-                    border: `1px solid ${sel ? 'var(--accent-20)' : 'transparent'}`,
-                    color: sel ? 'var(--accent)' : 'var(--fg-3)',
-                  }}
-                >
-                  <Ico size={12} aria-hidden="true" />
-                  {m.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </Card>
-
-      {/* Theme Picker */}
-      <Card padding="md" delay={0.1} className="col-span-2">
-        <div className="flex items-center gap-2 mb-4">
-          <Palette size={14} className="text-accent" />
-          <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4">Tema Visivo</div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          {themeList.map((t, i) => {
-            const isSel = themeId === t.id;
+      {/* Mode */}
+      <Card padding="md">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Modalità</div>
+        <div role="radiogroup" className="flex gap-1.5 p-1 rounded-xl" style={{ background: 'var(--glass)', border: '1px solid var(--glass-bd)' }}>
+          {[{ id: 'dark', label: 'Scuro' }, { id: 'light', label: 'Chiaro' }].map((m) => {
+            const sel = theme === m.id;
             return (
-              <motion.button
-                key={t.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => { haptic('medium'); setThemeId(t.id); }}
-                className={cn(
-                  'relative p-3.5 rounded-2xl text-left transition-all border overflow-hidden',
-                  isSel ? 'bg-accent/10 border-accent/20' : 'bg-glass border-glass-bd hover:border-glass-bd-2'
-                )}
+              <button
+                key={m.id}
+                role="radio"
+                aria-checked={sel}
+                onClick={() => { haptic('light'); setTheme(m.id); }}
+                className="flex-1 px-3 py-2 rounded-lg text-[12px] font-bold transition-colors"
+                style={{
+                  background: sel ? 'var(--accent-10)' : 'transparent',
+                  color: sel ? 'var(--accent)' : 'var(--fg-3)',
+                }}
               >
-                {isSel && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-                       style={{ background: 'var(--accent)' }}>
-                    <Check size={10} strokeWidth={3} className="text-black" />
-                  </div>
-                )}
-                <div className="flex gap-1 mb-2.5">
-                  {t.preview.map((c, pi) => (
-                    <div
-                      key={pi}
-                      className="rounded-md"
-                      style={{
-                        width: pi === 0 ? 28 : 20,
-                        height: 28,
-                        background: c,
-                        boxShadow: pi > 0 ? `0 0 8px ${c}55` : 'none',
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className={cn('text-[13px] font-bold mb-0.5', isSel && 'text-accent')}>{t.name}</div>
-                <div className="text-[10px] text-fg-4 leading-tight">{t.description}</div>
-              </motion.button>
+                {m.label}
+              </button>
             );
           })}
         </div>
       </Card>
 
-      {/* Tutorial */}
-      <Card onClick={onRestartTutorial} padding="md" delay={0.15} className="cursor-pointer">
+      {/* Theme */}
+      <Card padding="md">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Tema</div>
+        <div className="grid grid-cols-2 gap-2">
+          {themeList.map((t) => {
+            const sel = themeId === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => { haptic('medium'); setThemeId(t.id); }}
+                className={cn('relative p-3 rounded-xl text-left transition-all border overflow-hidden')}
+                style={{
+                  background: sel ? 'var(--accent-10)' : 'var(--glass)',
+                  borderColor: sel ? 'var(--accent-20)' : 'var(--glass-bd)',
+                }}
+              >
+                {sel && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--accent)' }}>
+                    <IcCheck style={{ width: 11, height: 11, color: '#000' }} />
+                  </div>
+                )}
+                <div className="flex gap-1 mb-2">
+                  {t.preview.map((c, i) => (
+                    <div key={i} className="rounded-md" style={{ width: i === 0 ? 22 : 16, height: 22, background: c }} />
+                  ))}
+                </div>
+                <div className={cn('text-[12px] font-bold mb-0.5', sel && 'text-accent')}>{t.name}</div>
+                <div className="text-[10px] text-fg-4 leading-tight">{t.description}</div>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Quick-cats picker */}
+      <Card onClick={() => setShowHomePicker(true)} padding="md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
-            <HelpCircle size={18} className="text-accent" />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent-10)' }}>
+            <IcEdit style={{ color: 'var(--accent)' }} />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold">Rivedi Tutorial</div>
-            <div className="text-[11px] text-fg-4">Tour guidato a 6 step</div>
+            <div className="text-sm font-semibold">Categorie scorciatoia</div>
+            <div className="text-[11px] text-fg-4">Scegli quali 4 mostrare nel quick-add</div>
           </div>
-          <ChevronRight size={16} className="text-fg-5" />
+          <IcChevR style={{ color: 'var(--fg-5)' }} />
         </div>
       </Card>
 
       {/* Categories */}
-      <Card padding="md" delay={0.2} className="col-span-2">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-4">Categorie</div>
-        <div className="flex flex-col gap-2">
-          {cats.map((cat) => (
-            <div key={cat.id}>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowCatEdit(showCatEdit === cat.id ? null : cat.id)}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border"
-                  style={{ background: `${cat.color}15`, borderColor: `${cat.color}30` }}
-                >
-                  <DynIcon name={cat.icon} size={15} color={cat.color} />
-                </button>
-                <input className="inp flex-1 py-2.5 text-[13px]" value={cat.label}
-                       onChange={(e) => setCats((p) => p.map((c) => c.id === cat.id ? { ...c, label: e.target.value } : c))} />
-                <button onClick={() => { haptic('warning'); setCats((p) => p.filter((c) => c.id !== cat.id)); }}
-                        className="p-2 text-red hover:bg-red/10 rounded-lg transition-colors">
-                  <X size={16} />
-                </button>
+      <Card padding="md">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Categorie</div>
+        <div className="flex flex-col gap-1.5">
+          {cats.map((c) => {
+            const Icon = iconForCategory(c.id);
+            const editing = showCatEdit === c.id;
+            return (
+              <div key={c.id}>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowCatEdit(editing ? null : c.id)}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center border"
+                    style={{ background: `${c.color}15`, borderColor: `${c.color}30`, color: c.color }}
+                  >
+                    <Icon />
+                  </button>
+                  <input
+                    className="inp flex-1 py-2.5 text-[13px]"
+                    value={c.label}
+                    onChange={(e) => setCats((p) => p.map((x) => x.id === c.id ? { ...x, label: e.target.value } : x))}
+                  />
+                  <button
+                    onClick={() => { haptic('warning'); setCats((p) => p.filter((x) => x.id !== c.id)); }}
+                    aria-label="Rimuovi categoria"
+                    className="p-2 text-red"
+                  >
+                    <IcX />
+                  </button>
+                </div>
+                {editing && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 p-3 rounded-xl"
+                    style={{ background: 'var(--glass)', border: '1px solid var(--glass-bd)' }}
+                  >
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Colore</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableColors.map((cl) => (
+                        <button
+                          key={cl}
+                          onClick={() => setCats((p) => p.map((x) => x.id === c.id ? { ...x, color: cl } : x))}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{
+                            background: cl,
+                            opacity: c.color === cl ? 1 : 0.5,
+                            outline: c.color === cl ? '2px solid var(--fg)' : 'none',
+                            outlineOffset: 1,
+                          }}
+                        >
+                          {c.color === cl && <IcCheck style={{ width: 12, height: 12, color: '#000' }} />}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
               </div>
-              {showCatEdit === cat.id && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-2 p-4 rounded-xl bg-glass border border-glass-bd"
-                >
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Icona</div>
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {availableIcons.map((ic) => (
-                      <button key={ic} onClick={() => setCats((p) => p.map((c) => c.id === cat.id ? { ...c, icon: ic } : c))}
-                              className="w-9 h-9 rounded-lg border flex items-center justify-center transition-all"
-                              style={{
-                                background: cat.icon === ic ? `${cat.color}20` : 'var(--glass)',
-                                borderColor: cat.icon === ic ? `${cat.color}40` : 'var(--glass-bd)',
-                              }}>
-                        <DynIcon name={ic} size={15} color={cat.icon === ic ? cat.color : 'var(--fg-4)'} />
-                      </button>
-                    ))}
-                  </div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Colore</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {availableColors.map((cl) => (
-                      <button key={cl} onClick={() => setCats((p) => p.map((c) => c.id === cat.id ? { ...c, color: cl } : c))}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center"
-                              style={{
-                                background: cl,
-                                opacity: cat.color === cl ? 1 : 0.5,
-                                outline: cat.color === cl ? '2px solid var(--fg-1)' : 'none',
-                                outlineOffset: 1,
-                              }}>
-                        {cat.color === cl && <Check size={14} strokeWidth={3} className="text-black" />}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          ))}
-          <button onClick={() => { const id = String(uid()); setCats((p) => [...p, { id, label: 'Nuova', icon: 'Tag', color: '#888', weight: 0 }]); setShowCatEdit(id); }}
-                  className="w-full py-3 rounded-xl bg-glass border border-dashed border-glass-bd-2 text-fg-3 text-[12px] font-semibold hover:bg-glass-2 hover:border-glass-bd-2 transition-all">
-            + Aggiungi Categoria
+            );
+          })}
+          <button
+            onClick={() => {
+              const id = `c_${Date.now()}`;
+              setCats((p) => [...p, { id, label: 'Nuova', icon: 'Tag', color: '#888', weight: 5 }]);
+              setShowCatEdit(id);
+            }}
+            className="w-full py-3 rounded-xl mt-1 text-[12px] font-semibold border border-dashed"
+            style={{ background: 'var(--glass)', borderColor: 'var(--glass-bd-2)', color: 'var(--fg-3)' }}
+          >
+            + Aggiungi categoria
           </button>
         </div>
       </Card>
 
-      {/* Customize home */}
-      <Card onClick={() => setShowWSet(true)} padding="md" delay={0.25} className="cursor-pointer">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
-            <LayoutGrid size={18} className="text-accent" />
+      {/* Categorization rules */}
+      {catRules.length > 0 && (
+        <Card padding="md">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">
+            Regole categorizzazione
           </div>
-          <div className="flex-1">
-            <div className="text-sm font-semibold">Personalizza Home</div>
-            <div className="text-[11px] text-fg-4">Scegli widget da mostrare</div>
+          <div className="flex flex-col gap-1.5">
+            {catRules.map((r) => {
+              const cat = cats.find((c) => c.id === r.catId);
+              return (
+                <div key={r.id} className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: 'var(--glass)', border: '1px solid var(--glass-bd)' }}>
+                  <span style={{ fontSize: 11, color: 'var(--fg-3)' }}>se contiene</span>
+                  <code style={{ background: 'var(--glass2)', padding: '2px 6px', borderRadius: 4, fontSize: 12, color: 'var(--accent)' }}>{r.contains}</code>
+                  <span style={{ fontSize: 11, color: 'var(--fg-3)' }}>→</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: cat?.color || 'var(--fg)' }}>{cat?.label || '?'}</span>
+                  <button
+                    onClick={() => removeCatRule(r.id)}
+                    style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--red)', cursor: 'pointer' }}
+                  >
+                    <IcX />
+                  </button>
+                </div>
+              );
+            })}
           </div>
-          <ChevronRight size={16} className="text-fg-5" />
-        </div>
-      </Card>
-
-      {/* Backup section */}
-      <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mt-2 px-1">Backup</div>
-
-      {/* JSON Backup export */}
-      <Card
-        onClick={doExportBackup}
-        padding="md" delay={0.22}
-        className="cursor-pointer"
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doExportBackup(); } }}
-        aria-label="Esporta backup completo in formato JSON"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-               style={{ background: 'var(--accent-10)', border: '1px solid var(--accent-20)' }}>
-            <Save size={18} style={{ color: 'var(--accent)' }} aria-hidden="true" />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-semibold">Backup completo (JSON)</div>
-            <div className="text-[11px] text-fg-4">Tutto: spese, categorie, obiettivi, tema</div>
-          </div>
-          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
-        </div>
-      </Card>
-
-      {/* JSON Backup import */}
-      <Card
-        onClick={() => backupInputRef.current?.click()}
-        padding="md" delay={0.24}
-        className="cursor-pointer"
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); backupInputRef.current?.click(); } }}
-        aria-label="Ripristina da backup JSON"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-               style={{ background: 'rgba(216,180,254,0.1)', border: '1px solid rgba(216,180,254,0.2)' }}>
-            <Database size={18} style={{ color: 'var(--purple)' }} aria-hidden="true" />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-semibold">Ripristina backup</div>
-            <div className="text-[11px] text-fg-4">Sostituisce i dati attuali</div>
-          </div>
-          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
-        </div>
-      </Card>
-
-      {backupError && (
-        <motion.p
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-[12px] font-semibold px-3 py-2.5 rounded-xl"
-          style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--red)' }}
-          role="alert"
-        >
-          {backupError}
-        </motion.p>
+        </Card>
       )}
 
-      {/* CSV section */}
-      <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mt-2 px-1">CSV (solo transazioni)</div>
-
-      {/* CSV Export */}
-      <Card onClick={() => exportCSV(txs, cats)} padding="md" delay={0.26} className="cursor-pointer">
+      {/* Replay tutorial */}
+      <Card onClick={replayTutorials} padding="md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal/10 border border-teal/20 flex items-center justify-center flex-shrink-0"
-               style={{ background: 'rgba(94,234,212,0.1)', borderColor: 'rgba(94,234,212,0.2)' }}>
-            <Download size={18} style={{ color: 'var(--teal)' }} aria-hidden="true" />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent-10)' }}>
+            <IcSpark style={{ color: 'var(--accent)' }} />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold">Esporta CSV</div>
-            <div className="text-[11px] text-fg-4">Scarica tutte le transazioni</div>
+            <div className="text-sm font-semibold">Rivedi tutorial</div>
+            <div className="text-[11px] text-fg-4">Riparti dalla home, ti guido di nuovo</div>
           </div>
-          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
+          <IcChevR style={{ color: 'var(--fg-5)' }} />
         </div>
       </Card>
 
-      {/* CSV Import */}
-      <Card onClick={() => fileInputRef.current?.click()} padding="md" delay={0.3} className="cursor-pointer">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-               style={{ background: 'rgba(103,232,249,0.1)', border: '1px solid rgba(103,232,249,0.2)' }}>
-            <Upload size={18} style={{ color: 'var(--info)' }} aria-hidden="true" />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-semibold">Importa CSV</div>
-            <div className="text-[11px] text-fg-4">Carica transazioni da file</div>
-          </div>
-          <ChevronRight size={16} className="text-fg-5" aria-hidden="true" />
-        </div>
+      {/* Backup */}
+      <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mt-2 px-1">Backup</div>
+      <Card onClick={doExportBackup} padding="md">
+        <div className="text-sm font-semibold">Backup completo (JSON)</div>
+        <div className="text-[11px] text-fg-4">Tutto: spese, categorie, profilo</div>
+      </Card>
+      <Card onClick={() => backupInputRef.current?.click()} padding="md">
+        <div className="text-sm font-semibold">Ripristina backup</div>
+        <div className="text-[11px] text-fg-4">Sostituisce i dati attuali</div>
+      </Card>
+      {backupError && <p style={{ fontSize: 12, color: 'var(--red)', padding: '8px 12px' }}>{backupError}</p>}
+
+      <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mt-2 px-1">CSV</div>
+      <Card onClick={() => exportCSV(txs, cats)} padding="md">
+        <div className="text-sm font-semibold">Esporta CSV</div>
+        <div className="text-[11px] text-fg-4">Solo transazioni</div>
+      </Card>
+      <Card onClick={() => fileInputRef.current?.click()} padding="md">
+        <div className="text-sm font-semibold">Importa CSV</div>
+        <div className="text-[11px] text-fg-4">Da file</div>
       </Card>
 
       {/* Reset */}
-      <motion.button
+      <button
         onClick={() => { haptic('warning'); setConfirmReset(true); }}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
         aria-label="Reset di tutti i dati"
-        className="col-span-2 text-left p-5 rounded-2xl flex items-center gap-3 border transition-colors hover:bg-red/10"
-        style={{ background: 'rgba(252,165,165,0.06)', borderColor: 'rgba(252,165,165,0.12)' }}
+        className="text-left p-4 rounded-2xl flex items-center gap-3 border mt-2"
+        style={{ background: 'rgba(248,113,113,0.06)', borderColor: 'rgba(248,113,113,0.2)' }}
       >
-        <Trash2 size={20} className="text-red" aria-hidden="true" />
-        <div>
-          <div className="text-sm font-semibold text-red">Reset Dati</div>
-          <div className="text-[11px] text-red/50">Cancella tutto e ricomincia</div>
-        </div>
-      </motion.button>
+        <div className="text-sm font-semibold text-red">Reset dati</div>
+        <div className="text-[11px] text-red/60 ml-auto">Cancella tutto</div>
+      </button>
+
+      <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleCSV} className="hidden" />
+      <input ref={backupInputRef} type="file" accept=".json,application/json" onChange={handleBackup} className="hidden" />
 
       <Confirm
         open={confirmReset}
@@ -433,101 +337,68 @@ export const SettingsScreen = ({ store, onReset, onRestartTutorial }) => {
         danger
       />
 
-      <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFile} className="hidden" aria-hidden="true" />
-      <input ref={backupInputRef} type="file" accept=".json,application/json" onChange={handleBackupFile} className="hidden" aria-hidden="true" />
-
-      {/* Backup restore confirmation */}
-      {backupPreview && (
-        <Sheet open={true} onClose={() => setBackupPreview(null)} title="Ripristina backup">
-          <div className="flex flex-col gap-4">
-            <p className="text-[12px] text-fg-3 leading-relaxed">
-              Questa operazione <strong className="text-red">sovrascriverà tutti i dati attuali</strong>. Continui?
-            </p>
-            <div className="rounded-2xl p-4 border" style={{ background: 'var(--glass)', borderColor: 'var(--glass-bd)' }}>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-3">Contenuto backup</div>
-              <div className="grid grid-cols-2 gap-2 text-[12px]">
-                <div className="flex justify-between"><span className="text-fg-3">Profilo</span><span className="font-semibold truncate">{backupPreview.summary.name}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Stipendio</span><span className="font-semibold tnum">€{backupPreview.summary.salary}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Transazioni</span><span className="font-semibold tnum">{backupPreview.summary.txs}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Categorie</span><span className="font-semibold tnum">{backupPreview.summary.cats}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Spese fisse</span><span className="font-semibold tnum">{backupPreview.summary.fixed}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Abbonamenti</span><span className="font-semibold tnum">{backupPreview.summary.subscriptions}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Obiettivi</span><span className="font-semibold tnum">{backupPreview.summary.dreams}</span></div>
-                <div className="flex justify-between"><span className="text-fg-3">Versione</span><span className="font-semibold font-mono">{backupPreview.summary.version}</span></div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="default" size="lg" className="flex-1" onClick={() => setBackupPreview(null)}>Annulla</Button>
-              <Button variant="primary" size="lg" className="flex-1" onClick={confirmRestore}>Ripristina</Button>
-            </div>
+      {/* Quick-cats picker sheet */}
+      {showHomePicker && (
+        <Sheet open={true} onClose={() => setShowHomePicker(false)} title="Categorie scorciatoia">
+          <p style={{ fontSize: 13, color: 'var(--fg-2)', marginBottom: 14 }}>
+            Scegli fino a 3 categorie come scorciatoie sulla home. La quarta è sempre "Altro".
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {cats.filter((c) => c.id !== 'other').map((c) => {
+              const Icon = iconForCategory(c.id);
+              const sel = homeCats.includes(c.id);
+              const canAdd = homeCats.length < 3 || sel;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    if (sel) setHomeCats(homeCats.filter((x) => x !== c.id));
+                    else if (canAdd) setHomeCats([...homeCats, c.id]);
+                  }}
+                  disabled={!canAdd}
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors"
+                  style={{
+                    background: sel ? `${c.color}15` : 'var(--glass)',
+                    border: `1px solid ${sel ? c.color + '40' : 'var(--glass-bd)'}`,
+                    color: sel ? c.color : 'var(--fg-2)',
+                    opacity: canAdd ? 1 : 0.4,
+                    cursor: canAdd ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  <Icon />
+                  <span style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>{c.label}</span>
+                  {sel && <IcCheck />}
+                </button>
+              );
+            })}
           </div>
         </Sheet>
       )}
 
-      {/* Widget settings sheet */}
-      <Sheet open={showWSet} onClose={() => setShowWSet(false)} title="Personalizza Home">
-        <p className="text-[12px] text-fg-4 mb-4">Tocca per attivare/disattivare widget.</p>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-2">Attivi ({widgets.length})</div>
-        <div className="flex flex-col gap-1.5 mb-6">
-          {widgets.map((wid) => {
-            const w = allWidgets.find((a) => a.id === wid);
-            if (!w) return null;
-            return (
-              <div key={w.id} className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-accent/5 border border-accent/10">
-                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <DynIcon name={w.icon} size={15} color="var(--accent)" />
-                </div>
-                <div className="flex-1 text-[13px] font-semibold">{w.label}</div>
-                <button onClick={() => { haptic('warning'); setWidgets((p) => p.filter((x) => x !== w.id)); }}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-red hover:bg-red/10 transition-colors">
-                  <X size={14} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        {allWidgets.filter((w) => !widgets.includes(w.id)).length > 0 && (
-          <>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-fg-4 mb-2">Disponibili</div>
-            <div className="flex flex-col gap-1.5">
-              {allWidgets.filter((w) => !widgets.includes(w.id)).map((w) => (
-                <button key={w.id} onClick={() => { haptic('success'); setWidgets((p) => [...p, w.id]); }}
-                        className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-glass border border-glass-bd text-left hover:bg-glass-2 transition-colors">
-                  <div className="w-9 h-9 rounded-xl bg-glass-2 flex items-center justify-center">
-                    <DynIcon name={w.icon} size={15} color="var(--fg-3)" />
-                  </div>
-                  <div className="flex-1 text-[13px] font-semibold text-fg-3">{w.label}</div>
-                  <Plus size={16} className="text-accent" />
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </Sheet>
+      {/* Backup restore preview */}
+      {backupPreview && (
+        <Sheet open={true} onClose={() => setBackupPreview(null)} title="Ripristina backup">
+          <p style={{ fontSize: 13, color: 'var(--fg-3)' }}>
+            Questa operazione <strong style={{ color: 'var(--red)' }}>sovrascriverà tutti i dati attuali</strong>.
+          </p>
+          <div style={{ marginTop: 14, padding: 12, background: 'var(--glass)', borderRadius: 12, fontSize: 12, color: 'var(--fg-2)' }}>
+            <div>Profilo: <strong>{backupPreview.summary.name}</strong></div>
+            <div>Transazioni: <strong>{backupPreview.summary.txs}</strong></div>
+            <div>Categorie: <strong>{backupPreview.summary.cats}</strong></div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+            <Button variant="default" size="lg" className="flex-1" onClick={() => setBackupPreview(null)}>Annulla</Button>
+            <Button variant="primary" size="lg" className="flex-1" onClick={confirmRestore}>Ripristina</Button>
+          </div>
+        </Sheet>
+      )}
 
       {/* Import preview */}
       {importPreview && (
         <Sheet open={true} onClose={() => setImportPreview(null)} title={`Importa ${importPreview.length} transazioni`}>
-          <div className="flex flex-col gap-3">
-            <div className="max-h-[300px] overflow-auto">
-              {importPreview.slice(0, 5).map((t, i) => {
-                const cat = cats.find((c) => c.id === t.cat);
-                return (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-glass mb-1.5">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-semibold truncate">{t.label || cat?.label}</div>
-                      <div className="text-[10px] text-fg-4">{new Date(t.ts).toLocaleDateString('it-IT')} · {cat?.label}</div>
-                    </div>
-                    <div className="tnum text-[13px] font-bold">€{t.amount.toFixed(2)}</div>
-                  </div>
-                );
-              })}
-              {importPreview.length > 5 && <div className="text-center text-[11px] text-fg-4 py-2">... e altre {importPreview.length - 5}</div>}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="default" size="lg" className="flex-1" onClick={() => setImportPreview(null)}>Annulla</Button>
-              <Button variant="primary" size="lg" className="flex-1" onClick={() => { importTxs(importPreview); setImportPreview(null); }}>Importa</Button>
-            </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="default" size="lg" className="flex-1" onClick={() => setImportPreview(null)}>Annulla</Button>
+            <Button variant="primary" size="lg" className="flex-1" onClick={() => { importTxs(importPreview); setImportPreview(null); }}>Importa</Button>
           </div>
         </Sheet>
       )}

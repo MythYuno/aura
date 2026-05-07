@@ -41,10 +41,20 @@ export const useStore = () => {
   const [resetDay, setResetDay] = useState(stored?.resetDay || 1);
   const [currentSavings, setCurrentSavings] = useState(stored?.currentSavings || 0);
 
+  // Salary override: if the user gets paid more/less in a given month, they
+  // can rectify the actual amount. Keyed by month 'YYYY-MM' → number.
+  const [salaryOverrides, setSalaryOverrides] = useState(stored?.salaryOverrides || {});
+
   const [cats, setCats] = useState(stored?.cats || defaultCats);
   const [txs, setTxs] = useState(stored?.txs || []);
   const [fixed, setFixed] = useState(stored?.fixed || []);
+  // Annual expenses with month-of-due. Auto-allocated 1/12 each month so the
+  // money is ready when the bill arrives.
+  // Schema: { id, label, amount, dueMonth (1..12), color?, icon? }
+  const [annualExpenses, setAnnualExpenses] = useState(stored?.annualExpenses || []);
   const [quickActions, setQuickActions] = useState(stored?.quickActions || []);
+  // Up to 4 category ids surfaced as quick chips on the home quick-add.
+  const [homeCats, setHomeCats] = useState(stored?.homeCats || ['food', 'transport', 'home']);
   const [dreams, setDreams] = useState(stored?.dreams || []);
   const [buffer, setBuffer] = useState(stored?.buffer ?? 10);
   const [widgets, setWidgets] = useState(stored?.widgets || defaultWidgets);
@@ -54,9 +64,16 @@ export const useStore = () => {
   const [rolloverHistory, setRolloverHistory] = useState(stored?.rolloverHistory || []);
   const [celebrated, setCelebrated] = useState(stored?.celebrated || {});
 
+  // User-defined categorization rules: { id, contains, catId } — overrides smart-cat suggestions.
+  const [catRules, setCatRules] = useState(stored?.catRules || []);
+  // Tutorial visited flags — keyed per screen so we can show the tour once.
+  const [tutorialState, setTutorialState] = useState(stored?.tutorialState || {});
+
   const [theme, setTheme] = useState(stored?.theme || 'dark');
-  const [themeId, setThemeId] = useState(stored?.themeId || 'acid');
+  const [themeId, setThemeId] = useState(stored?.themeId || 'aurora');
   const [privacy, setPrivacy] = useState(false);
+  // Legacy global flag — kept so existing backups still work. New tutorial
+  // flow uses tutorialState[screenId] instead.
   const [tutorialSeen, setTutorialSeen] = useState(stored?.tutorialSeen || false);
 
   // Debounced save: collapses bursts (slider drags, rapid toggles) into one write.
@@ -66,9 +83,11 @@ export const useStore = () => {
   useEffect(() => {
     if (!booted) return;
     pendingSave.current = {
-      name, salary, resetDay, currentSavings, cats, txs, fixed, quickActions,
+      name, salary, resetDay, currentSavings, salaryOverrides,
+      cats, txs, fixed, annualExpenses, quickActions, homeCats,
       dreams, buffer, widgets, theme, themeId, extraIncomes, subscriptions,
-      rolloverTarget, rolloverHistory, celebrated, tutorialSeen,
+      rolloverTarget, rolloverHistory, celebrated,
+      catRules, tutorialState, tutorialSeen,
     };
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -77,9 +96,11 @@ export const useStore = () => {
     }, 250);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [
-    name, salary, resetDay, currentSavings, cats, txs, fixed, quickActions,
+    name, salary, resetDay, currentSavings, salaryOverrides,
+    cats, txs, fixed, annualExpenses, quickActions, homeCats,
     dreams, buffer, widgets, booted, theme, themeId, extraIncomes, subscriptions,
-    rolloverTarget, rolloverHistory, celebrated, tutorialSeen,
+    rolloverTarget, rolloverHistory, celebrated,
+    catRules, tutorialState, tutorialSeen,
   ]);
 
   useEffect(() => {
@@ -119,11 +140,27 @@ export const useStore = () => {
 
   const fixedMonthly = useMemo(() => fixed.reduce((s, f) => s + (f.type === 'annual' ? f.amount / 12 : f.amount), 0), [fixed]);
   const subscriptionsMonthly = useMemo(() => subscriptions.reduce((a, s) => a + (s.active === false ? 0 : s.amount || 0), 0), [subscriptions]);
+  // Annual expenses spread evenly across 12 months as auto-savings.
+  const annualMonthly = useMemo(
+    () => annualExpenses.reduce((a, e) => a + (e.amount || 0) / 12, 0),
+    [annualExpenses]
+  );
   const dreamAlloc = useMemo(() => dreams.reduce((a, d) => a + (d.alloc || 0), 0), [dreams]);
-  const bufferAmt = useMemo(() => Math.max(0, (salary * buffer) / 100), [salary, buffer]);
+
+  // Salary actually received this period — the user can rectify it from Soldi.
+  const monthKey = useMemo(() => {
+    const d = periodStart;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }, [periodStart]);
+  const effectiveSalary = useMemo(
+    () => (salaryOverrides[monthKey] != null ? salaryOverrides[monthKey] : salary),
+    [salaryOverrides, monthKey, salary]
+  );
+
+  const bufferAmt = useMemo(() => Math.max(0, (effectiveSalary * buffer) / 100), [effectiveSalary, buffer]);
   const extraThisPeriod = useMemo(() => extraIncomes.filter((e) => e.ts >= periodStart.getTime() && e.ts < periodEnd.getTime()).reduce((a, e) => a + (e.amount || 0), 0), [extraIncomes, periodStart, periodEnd]);
-  const totalLocked = useMemo(() => fixedMonthly + subscriptionsMonthly + dreamAlloc + bufferAmt, [fixedMonthly, subscriptionsMonthly, dreamAlloc, bufferAmt]);
-  const freeBudget = useMemo(() => Math.max(0, salary + extraThisPeriod - totalLocked), [salary, extraThisPeriod, totalLocked]);
+  const totalLocked = useMemo(() => fixedMonthly + subscriptionsMonthly + annualMonthly + dreamAlloc + bufferAmt, [fixedMonthly, subscriptionsMonthly, annualMonthly, dreamAlloc, bufferAmt]);
+  const freeBudget = useMemo(() => Math.max(0, effectiveSalary + extraThisPeriod - totalLocked), [effectiveSalary, extraThisPeriod, totalLocked]);
   const pTxs = useMemo(() => txs.filter((t) => t.ts >= periodStart.getTime() && t.ts < periodEnd.getTime()), [txs, periodStart, periodEnd]);
   const totalSpent = useMemo(() => pTxs.reduce((a, t) => a + realCost(t), 0), [pTxs]);
   const remaining = useMemo(() => freeBudget - totalSpent, [freeBudget, totalSpent]);
@@ -306,19 +343,89 @@ export const useStore = () => {
     setTxs((p) => [...p, ...newTxs]);
   };
 
+  // Annual expenses
+  const addAnnual = (label, amount, dueMonth, color) => {
+    haptic('medium');
+    setAnnualExpenses((p) => [...p, {
+      id: uid(), label, amount: parseNum(amount),
+      dueMonth: parseInt(dueMonth) || 1, color,
+    }]);
+  };
+  const removeAnnual = (id) => {
+    haptic('warning');
+    setAnnualExpenses((p) => p.filter((e) => e.id !== id));
+  };
+
+  // Salary override (rectify month's actual paycheck)
+  const setSalaryForMonth = (key, amount) => {
+    haptic('light');
+    const next = { ...salaryOverrides };
+    if (amount == null) delete next[key];
+    else next[key] = parseNum(amount);
+    setSalaryOverrides(next);
+  };
+
+  // Categorization rules
+  const addCatRule = (contains, catId) => {
+    if (!contains) return;
+    haptic('light');
+    setCatRules((p) => [...p, { id: uid(), contains: contains.toLowerCase().trim(), catId }]);
+  };
+  const removeCatRule = (id) => {
+    setCatRules((p) => p.filter((r) => r.id !== id));
+  };
+
+  // Splice an extra income across N months. Records the original event + spreads
+  // the amount as N additional `extraIncomes` entries dated +1m, +2m, ... +Nm.
+  const addSplicedIncome = (amount, label, months) => {
+    haptic('success');
+    const a = parseNum(amount);
+    if (a <= 0) return;
+    const m = Math.max(1, parseInt(months) || 1);
+    const per = a / m;
+    const items = [];
+    const baseTs = Date.now();
+    for (let i = 0; i < m; i++) {
+      const d = new Date();
+      d.setMonth(d.getMonth() + i);
+      items.push({
+        id: uid(),
+        amount: per,
+        label: i === 0 ? label : `${label} (${i + 1}/${m})`,
+        ts: i === 0 ? baseTs : d.getTime(),
+      });
+    }
+    setExtraIncomes((p) => [...p, ...items]);
+  };
+
+  // Tutorial state
+  const markTutorialSeen = (screenId) => {
+    setTutorialState((p) => ({ ...p, [screenId]: true }));
+  };
+  const resetAllTutorials = () => {
+    setTutorialState({});
+    setTutorialSeen(false);
+  };
+
   return {
     booted, setBooted,
     name, setName, salary, setSalary, resetDay, setResetDay,
     currentSavings, setCurrentSavings,
+    salaryOverrides, setSalaryForMonth, effectiveSalary, monthKey,
     cats, setCats, txs, setTxs, fixed, setFixed,
-    quickActions, setQuickActions, dreams, setDreams,
+    annualExpenses, setAnnualExpenses, addAnnual, removeAnnual, annualMonthly,
+    quickActions, setQuickActions,
+    homeCats, setHomeCats,
+    dreams, setDreams,
     buffer, setBuffer, widgets, setWidgets,
     subscriptions, setSubscriptions, extraIncomes, setExtraIncomes,
     rolloverTarget, setRolloverTarget, rolloverHistory, setRolloverHistory,
     celebrated, setCelebrated,
+    catRules, setCatRules, addCatRule, removeCatRule,
+    tutorialState, markTutorialSeen, resetAllTutorials,
     theme, setTheme, themeId, setThemeId, privacy, setPrivacy,
     tutorialSeen, setTutorialSeen,
-    now, periodStart, periodEnd, daysInPeriod, dayOfPeriod, daysLeft,
+    now, todayKey, periodStart, periodEnd, daysInPeriod, dayOfPeriod, daysLeft,
     fixedMonthly, subscriptionsMonthly, dreamAlloc, bufferAmt,
     extraThisPeriod, totalLocked, freeBudget, pTxs, totalSpent, remaining,
     dailyBudget, isOver, burnPct, smartAlloc, smartSuggestions, insights,
@@ -326,7 +433,8 @@ export const useStore = () => {
     forecast, upcomingDeductions, weeklyInsight, streakData, monthsHistory,
     pendingCredits, totalPendingCredit, totalReceivedCredit,
     addTx, deleteTx, markCreditReceived,
-    addExtraIncome, addSubscription, removeSubscription, toggleSubscription,
+    addExtraIncome, addSplicedIncome,
+    addSubscription, removeSubscription, toggleSubscription,
     importTxs, computePeriod,
   };
 };

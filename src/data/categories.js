@@ -6,13 +6,12 @@
 
 export const defaultCats = [
   { id: 'food', label: 'Cibo', icon: 'UtensilsCrossed', color: '#FB923C', weight: 30 },
-  { id: 'transport', label: 'Trasporti', icon: 'Car', color: '#60A5FA', weight: 15 },
-  { id: 'home', label: 'Casa', icon: 'Home', color: '#A78BFA', weight: 20 },
+  { id: 'home', label: 'Casa', icon: 'Home', color: '#22D3EE', weight: 22 },
+  { id: 'transport', label: 'Trasporti', icon: 'Car', color: '#A78BFA', weight: 15 },
   { id: 'health', label: 'Salute', icon: 'HeartPulse', color: '#F472B6', weight: 10 },
   { id: 'fun', label: 'Svago', icon: 'Film', color: '#FDE047', weight: 10 },
-  { id: 'wants', label: 'Shopping', icon: 'ShoppingBag', color: '#22D3EE', weight: 8 },
-  { id: 'vices', label: 'Vizi', icon: 'Coffee', color: '#C084FC', weight: 4 },
-  { id: 'other', label: 'Altro', icon: 'Tag', color: '#A1A1AA', weight: 3 },
+  { id: 'wants', label: 'Shopping', icon: 'ShoppingBag', color: '#60A5FA', weight: 8 },
+  { id: 'other', label: 'Altro', icon: 'Tag', color: '#A1A1AA', weight: 5 },
 ];
 
 /**

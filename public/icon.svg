@@ -17,7 +17,12 @@
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
   <rect width="512" height="512" rx="112" fill="url(#glow)"/>
-  <circle cx="256" cy="256" r="148" fill="none" stroke="url(#accent)" stroke-width="3" opacity="0.35"/>
-  <circle cx="256" cy="256" r="92" fill="url(#accent)" opacity="0.18"/>
-  <text x="256" y="320" text-anchor="middle" font-family="'Geist', system-ui, sans-serif" font-size="220" font-weight="200" fill="url(#accent)" letter-spacing="-6">A</text>
+  <!-- A geometrica -->
+  <g transform="translate(256 256) scale(4) translate(-48 -48)">
+    <path d="M 22 70 L 48 22 L 74 70" fill="none" stroke="url(#accent)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="34" y1="54" x2="62" y2="54" stroke="url(#accent)" stroke-width="4.2" stroke-linecap="round"/>
+    <path d="M 30 68 Q 48 40, 66 68" fill="none" stroke="url(#accent)" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 36 66 Q 48 52, 60 66" fill="none" stroke="url(#accent)" stroke-width="2.4" stroke-linecap="round" opacity="0.4"/>
+    <circle cx="48" cy="68" r="3" fill="url(#accent)"/>
+  </g>
 </svg>
