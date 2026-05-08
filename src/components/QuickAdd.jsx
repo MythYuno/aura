@@ -18,9 +18,11 @@ export const QuickAdd = ({
   homeCats = [],
   cats = [],
   txs = [],
+  catRules = [],
   onSubmit,
   onLargeIncome,
   onEditCats,
+  onWhy,
 }) => {
   const [tab, setTab] = useState('spend');
   const [open, setOpen] = useState(false);
@@ -32,8 +34,8 @@ export const QuickAdd = ({
   // Smart cat suggestion (only for spese)
   const suggestedCat = useMemo(() => {
     if (tab !== 'spend' || !label) return null;
-    return suggestCategory(label, txs, cats);
-  }, [tab, label, txs, cats]);
+    return suggestCategory(label, txs, cats, catRules);
+  }, [tab, label, txs, cats, catRules]);
 
   useEffect(() => {
     if (open && tab === 'spend' && !touchedCat && suggestedCat) {
@@ -199,9 +201,20 @@ export const QuickAdd = ({
                     <div className="qa-cat-head">
                       <label className="qa-lbl">Categoria</label>
                       {!touchedCat && suggestedCat && label.trim() && (
-                        <span className="qa-auto">
-                          <IcSpark /> AUTO
-                        </span>
+                        <>
+                          <span className="qa-auto">
+                            <IcSpark /> AUTO
+                          </span>
+                          {onWhy && (
+                            <button
+                              type="button"
+                              className="qa-why"
+                              onClick={(e) => { e.preventDefault(); onWhy({ label, catId: suggestedCat }); }}
+                            >
+                              perché?
+                            </button>
+                          )}
+                        </>
                       )}
                       {onEditCats && (
                         <button type="button" className="qa-edit" onClick={onEditCats}>

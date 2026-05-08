@@ -188,11 +188,26 @@ const tokenize = (s) =>
     .split(/\s+/)
     .filter((t) => t.length >= 3);
 
-export const suggestCategory = (label, txs, cats) => {
+export const suggestCategory = (label, txs, cats, catRules = []) => {
   const tokens = tokenize(label);
   if (tokens.length === 0) return null;
   const tokenSet = new Set(tokens);
 
+  // 1. User-defined rules win over learned patterns. Match if any rule's
+  //    `contains` token (or sub-string) appears in the description.
+  if (catRules.length > 0) {
+    const lower = String(label || '').toLowerCase();
+    for (let i = 0; i < catRules.length; i++) {
+      const r = catRules[i];
+      if (!r.contains || !r.catId) continue;
+      const needle = String(r.contains).toLowerCase();
+      if (lower.includes(needle) && cats.some((c) => c.id === r.catId)) {
+        return r.catId;
+      }
+    }
+  }
+
+  // 2. Otherwise, fall back to learned token overlap from past txs.
   const scores = {};
   for (let i = 0; i < txs.length; i++) {
     const t = txs[i];

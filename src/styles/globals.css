@@ -201,8 +201,11 @@ body::after {
 }
 
 .privacy-blur {
-  filter: blur(12px);
-  transition: filter 0.5s var(--ease);
+  /* gentler than blur(12) — keeps shape but kills detail.
+     Numbers stay legible-as-glyphs while the value is masked. */
+  filter: blur(7px) saturate(0.6);
+  opacity: 0.85;
+  transition: filter 0.4s var(--ease), opacity 0.4s var(--ease);
   user-select: none;
   pointer-events: none;
 }
@@ -880,6 +883,19 @@ button:disabled,
   background: var(--glass2); border: none; cursor: pointer;
 }
 .qa-edit svg { width: 10px; height: 10px; }
+.qa-why {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.qa-why:hover { background: var(--accent-10); }
 .qa-cats {
   display: flex; flex-wrap: wrap; gap: 6px;
 }

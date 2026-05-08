@@ -20,7 +20,7 @@ import { cn } from '../lib/format.js';
  */
 export const Today = ({ store, onSettingsTap }) => {
   const {
-    name, txs, cats, homeCats, periodStart, periodEnd, dayOfPeriod, daysInPeriod,
+    name, txs, cats, homeCats, catRules, periodStart, periodEnd, dayOfPeriod, daysInPeriod,
     daysLeft, freeBudget, totalSpent, remaining, dailyBudget, privacy, isOver,
     addTx, addExtraIncome, addSplicedIncome, monthKey,
     fixed, subscriptions, addCatRule,
@@ -47,15 +47,7 @@ export const Today = ({ store, onSettingsTap }) => {
       addExtraIncome(amount, label || 'Entrata extra');
       return;
     }
-    // spese: prima check se applichiamo una regola utente
     addTx(amount, catId, label);
-    // Offer "why?" for the just-added expense if smart-cat picked the category
-    if (label) {
-      const suggested = suggestCategory(label, txs, cats);
-      if (suggested === catId) {
-        // skip showing modal automatically — user can review from Storia later
-      }
-    }
   };
 
   const onLargeIncome = ({ amount, label }) => {
@@ -115,8 +107,10 @@ export const Today = ({ store, onSettingsTap }) => {
         homeCats={homeCats}
         cats={cats}
         txs={txs}
+        catRules={catRules}
         onSubmit={onQuickSubmit}
         onLargeIncome={onLargeIncome}
+        onWhy={(payload) => setWhy(payload)}
       />
 
       {/* Modals */}

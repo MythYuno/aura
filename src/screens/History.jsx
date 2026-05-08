@@ -4,7 +4,7 @@ import { Tour } from '../components/Tour.jsx';
 import { useTour } from '../hooks/useTour.js';
 import { YearBars } from '../components/YearBars.jsx';
 import { DayDetail } from '../components/DayDetail.jsx';
-import { IcChevR, IcChevL, IcAlert } from '../lib/icons.jsx';
+import { IcChevR, IcChevL, IcAlert, IcX } from '../lib/icons.jsx';
 import { iconForCategory } from '../lib/icons.jsx';
 import { findAnomalies } from '../lib/anomaly.js';
 import { realCost, $d, $n, cn } from '../lib/format.js';
@@ -19,6 +19,7 @@ export const History = ({ store }) => {
 
   const [offset, setOffset] = useState(0); // 0 = current month
   const [dayTs, setDayTs] = useState(null);
+  const [search, setSearch] = useState('');
 
   const period = useMemo(() => computePeriod(offset), [computePeriod, offset]);
   const monthTxs = useMemo(
@@ -26,6 +27,21 @@ export const History = ({ store }) => {
     [txs, period]
   );
   const monthTotal = monthTxs.reduce((s, t) => s + realCost(t), 0);
+
+  // Apply search filter (label, category name, or amount)
+  const filteredTxs = useMemo(() => {
+    if (!search.trim()) return monthTxs;
+    const q = search.toLowerCase().trim();
+    const qNum = parseFloat(q.replace(',', '.'));
+    return monthTxs.filter((t) => {
+      const cat = cats.find((c) => c.id === t.cat);
+      const label = (t.label || '').toLowerCase();
+      const catName = (cat?.label || '').toLowerCase();
+      if (label.includes(q) || catName.includes(q)) return true;
+      if (!isNaN(qNum) && qNum > 0 && Math.abs(realCost(t) - qNum) < 0.01) return true;
+      return false;
+    });
+  }, [monthTxs, search, cats]);
 
   // Delta vs previous month
   const prev = useMemo(() => computePeriod(offset + 1), [computePeriod, offset]);
@@ -65,10 +81,10 @@ export const History = ({ store }) => {
     return findAnomalies(monthTxs).slice(0, 3);
   }, [monthTxs]);
 
-  // Group by day for the list
+  // Group by day for the list (uses filteredTxs so search narrows the list)
   const grouped = useMemo(() => {
     const g = {};
-    monthTxs
+    filteredTxs
       .slice()
       .sort((a, b) => b.ts - a.ts)
       .forEach((t) => {
@@ -78,7 +94,7 @@ export const History = ({ store }) => {
         g[k].push(t);
       });
     return g;
-  }, [monthTxs]);
+  }, [filteredTxs]);
 
   const monthLabel = period.start.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
 
@@ -165,11 +181,56 @@ export const History = ({ store }) => {
         </div>
       )}
 
+      {/* Search */}
+      {monthTxs.length > 0 && (
+        <div style={{
+          margin: '14px 0 6px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 14px',
+          background: 'var(--glass)',
+          border: '1px solid var(--glass-bd)',
+          borderRadius: 14,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" style={{ color: 'var(--fg-3)', flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Cerca per descrizione, categoria, importo…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontSize: 13,
+              color: 'var(--fg)',
+              fontFamily: 'inherit',
+              minWidth: 0,
+            }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              aria-label="Pulisci ricerca"
+              style={{ background: 'transparent', border: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 2 }}
+            >
+              <IcX style={{ width: 14, height: 14 }} />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Day list */}
       <div className="day-list" data-tut="days">
         {Object.keys(grouped).length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--fg-3)', padding: '40px 0' }}>
-            Nessuna spesa in questo mese.
+            {search.trim()
+              ? `Nessun risultato per "${search}".`
+              : 'Nessuna spesa in questo mese.'}
           </p>
         ) : (
           Object.entries(grouped).map(([key, items]) => {
