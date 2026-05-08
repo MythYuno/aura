@@ -64,5 +64,13 @@ export const parseBackupFile = (text) => {
 };
 
 export const applyBackup = (data) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Reset transient flags (tutorial seen, privacy) so the imported profile
+  // gets a fresh first-run experience. Persistent prefs (themeId/theme) are
+  // preserved as-is.
+  const cleaned = {
+    ...data,
+    tutorialState: {},
+    tutorialSeen: false,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
 };

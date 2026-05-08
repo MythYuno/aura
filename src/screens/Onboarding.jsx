@@ -90,12 +90,16 @@ export const Onboarding = ({ onDone }) => {
     <div className="onb-shell">
       <div className="onb-card">
         <div className="onb-progress">
-          {Array.from({ length: total }).map((_, i) => (
-            <div
-              key={i}
-              className={`seg ${i < step ? 'done' : i === step ? 'now' : ''}`}
-            />
-          ))}
+          {/* Welcome non conta nel contatore visibile — 6 step utente, non 7 */}
+          {Array.from({ length: total - 1 }).map((_, i) => {
+            const userStep = i + 1; // 1..6 → corrisponde a step 1..6
+            return (
+              <div
+                key={i}
+                className={`seg ${userStep < step ? 'done' : userStep === step ? 'now' : ''}`}
+              />
+            );
+          })}
         </div>
 
         <AnimatePresence mode="wait">

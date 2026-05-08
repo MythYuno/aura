@@ -37,6 +37,7 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
   const [backupPreview, setBackupPreview] = useState(null);
   const [backupError, setBackupError] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmCatDelete, setConfirmCatDelete] = useState(null); // { catId, count }
   const fileInputRef = useRef(null);
   const backupInputRef = useRef(null);
 
@@ -217,7 +218,15 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
                     onChange={(e) => setCats((p) => p.map((x) => x.id === c.id ? { ...x, label: e.target.value } : x))}
                   />
                   <button
-                    onClick={() => { haptic('warning'); setCats((p) => p.filter((x) => x.id !== c.id)); }}
+                    onClick={() => {
+                      haptic('warning');
+                      const count = txs.filter((t) => t.cat === c.id).length;
+                      if (count > 0) {
+                        setConfirmCatDelete({ catId: c.id, label: c.label, count });
+                      } else {
+                        setCats((p) => p.filter((x) => x.id !== c.id));
+                      }
+                    }}
                     aria-label="Rimuovi categoria"
                     className="p-2 text-red"
                   >
@@ -353,6 +362,24 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
         onConfirm={onReset}
         title="Cancellare tutti i dati?"
         msg="Verranno persi spese, abbonamenti, obiettivi e impostazioni. Esporta prima un backup se vuoi recuperarli."
+        danger
+      />
+
+      <Confirm
+        open={!!confirmCatDelete}
+        onClose={() => setConfirmCatDelete(null)}
+        onConfirm={() => {
+          if (!confirmCatDelete) return;
+          const { catId } = confirmCatDelete;
+          // Reassign existing txs to "other" before removing the category
+          const otherExists = cats.some((c) => c.id === 'other');
+          store.setTxs((p) => p.map((t) => t.cat === catId ? { ...t, cat: otherExists ? 'other' : (cats.find((c) => c.id !== catId)?.id || t.cat) } : t));
+          setCats((p) => p.filter((c) => c.id !== catId));
+        }}
+        title={confirmCatDelete ? `Eliminare "${confirmCatDelete.label}"?` : ''}
+        msg={confirmCatDelete
+          ? `Hai ${confirmCatDelete.count} ${confirmCatDelete.count === 1 ? 'spesa' : 'spese'} in questa categoria. Verranno spostate in "Altro".`
+          : ''}
         danger
       />
 

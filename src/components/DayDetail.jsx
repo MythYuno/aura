@@ -20,12 +20,15 @@ export const DayDetail = ({ open, dayTs, allTxs, cats, onClose, onCategoryTap })
   const dayTxs = allTxs.filter((t) => t.ts >= dayStart.getTime() && t.ts < dayEnd.getTime());
   const total = dayTxs.reduce((s, t) => s + realCost(t), 0);
 
-  // Compute the strongest anomaly of the day (if any)
+  // Per-tx anomaly map + the strongest anomaly of the day
+  const anomalyByTx = {};
   let topAnomaly = null;
   for (let i = 0; i < dayTxs.length; i++) {
-    const a = checkAnomaly(dayTxs[i], allTxs);
-    if (a.isAnomaly && (!topAnomaly || a.multiple > topAnomaly.multiple)) {
-      topAnomaly = a;
+    const t = dayTxs[i];
+    const a = checkAnomaly(t, allTxs);
+    if (a.isAnomaly) {
+      anomalyByTx[t.id] = a;
+      if (!topAnomaly || a.multiple > topAnomaly.multiple) topAnomaly = a;
     }
   }
 
@@ -93,7 +96,7 @@ export const DayDetail = ({ open, dayTs, allTxs, cats, onClose, onCategoryTap })
                         {' · '}{cat?.label || '—'}
                       </div>
                     </div>
-                    <div className={cn('amt', topAnomaly && t.id === topAnomaly.txId && 'warn')}>
+                    <div className={cn('amt', anomalyByTx[t.id] && 'warn')}>
                       €{$d(realCost(t))}
                     </div>
                   </div>
