@@ -135,17 +135,12 @@ export default function App() {
         <div className="scroll-progress" style={{ transform: `scaleX(${progress})` }} />
 
         <main className="flex h-full flex-col relative z-10">
-          {/* Top header (mobile-style) */}
+          {/* Top header — logo a sinistra (decorativo), privacy + settings a destra */}
           <header
             className="flex items-center justify-between px-5 pb-3 pt-4 z-10 sticky-fade"
             style={{ paddingTop: 'max(16px, calc(env(safe-area-inset-top) + 10px))' }}
           >
-            <button
-              className="flex items-center gap-2.5"
-              onClick={() => { haptic('light'); setSettingsOpen(true); }}
-              data-tut="avatar"
-              aria-label="Apri impostazioni"
-            >
+            <div className="flex items-center gap-2.5">
               <Logo size="sm" withText={false} />
               {store.name && (
                 <div style={{ textAlign: 'left' }}>
@@ -157,15 +152,25 @@ export default function App() {
                   </p>
                 </div>
               )}
-            </button>
-            <button
-              onClick={() => { haptic('light'); store.setPrivacy(!store.privacy); }}
-              aria-label={store.privacy ? 'Mostra importi' : 'Nascondi importi'}
-              aria-pressed={store.privacy}
-              className="glass w-10 h-10 rounded-xl flex items-center justify-center text-fg-2 transition-colors active:scale-95"
-            >
-              {store.privacy ? <IcEyeOff /> : <IcEye />}
-            </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { haptic('light'); store.setPrivacy(!store.privacy); }}
+                aria-label={store.privacy ? 'Mostra importi' : 'Nascondi importi'}
+                aria-pressed={store.privacy}
+                className="glass w-10 h-10 rounded-xl flex items-center justify-center text-fg-2 transition-colors active:scale-95"
+              >
+                {store.privacy ? <IcEyeOff /> : <IcEye />}
+              </button>
+              <button
+                onClick={() => { haptic('light'); setSettingsOpen(true); }}
+                aria-label="Apri impostazioni"
+                data-tut="settings"
+                className="glass w-10 h-10 rounded-xl flex items-center justify-center text-fg-2 transition-colors active:scale-95"
+              >
+                <IcSettings />
+              </button>
+            </div>
           </header>
 
           <div

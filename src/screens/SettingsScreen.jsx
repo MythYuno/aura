@@ -137,7 +137,7 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
               <button
                 key={t.id}
                 onClick={() => { haptic('medium'); setThemeId(t.id); }}
-                className={cn('relative p-3 rounded-xl text-left transition-all border overflow-hidden')}
+                className="relative p-3 rounded-xl text-left transition-all border overflow-hidden"
                 style={{
                   background: sel ? 'var(--accent-10)' : 'var(--glass)',
                   borderColor: sel ? 'var(--accent-20)' : 'var(--glass-bd)',
@@ -148,10 +148,29 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
                     <IcCheck style={{ width: 11, height: 11, color: '#000' }} />
                   </div>
                 )}
-                <div className="flex gap-1 mb-2">
-                  {t.preview.map((c, i) => (
-                    <div key={i} className="rounded-md" style={{ width: i === 0 ? 22 : 16, height: 22, background: c }} />
-                  ))}
+                {/* Swatch a gradiente + tre dot dei colori dominanti */}
+                <div
+                  className="rounded-lg mb-2 relative overflow-hidden"
+                  style={{
+                    height: 36,
+                    background: t.swatchBg || `linear-gradient(135deg, ${t.preview[0]}, ${t.preview[1] || t.preview[0]}, ${t.preview[2] || t.preview[0]})`,
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
+                  }}
+                >
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start', gap: 4, padding: 6 }}>
+                    {t.preview.slice(0, 3).map((c, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: c,
+                          boxShadow: '0 0 0 1.5px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.3)',
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <div className={cn('text-[12px] font-bold mb-0.5', sel && 'text-accent')}>{t.name}</div>
                 <div className="text-[10px] text-fg-4 leading-tight">{t.description}</div>

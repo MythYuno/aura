@@ -5,13 +5,11 @@ import { ForecastBox } from '../components/ForecastBox.jsx';
 import { QuickAdd } from '../components/QuickAdd.jsx';
 import { SpliceModal } from '../components/SpliceModal.jsx';
 import { DayDetail } from '../components/DayDetail.jsx';
-import { VoiceCapture } from '../components/VoiceCapture.jsx';
 import { WhyCard } from '../components/WhyCard.jsx';
 import { WeeklyDigest } from '../components/WeeklyDigest.jsx';
 import { Tour } from '../components/Tour.jsx';
 import { useTour } from '../hooks/useTour.js';
 import { monthlyForecast } from '../lib/forecast.js';
-import { isVoiceSupported } from '../lib/voice.js';
 import { suggestCategory } from '../lib/intelligence.js';
 import { NumberTicker } from '../components/ui/NumberTicker.jsx';
 import { cn } from '../lib/format.js';
@@ -31,7 +29,6 @@ export const Today = ({ store, onSettingsTap }) => {
   const tour = useTour('today', store);
   const [dayTs, setDayTs] = useState(null);
   const [splice, setSplice] = useState(null);
-  const [voiceMode, setVoiceMode] = useState(null); // 'spend' | 'income' | null
   const [why, setWhy] = useState(null);
 
   // Forecast for the rest of the month
@@ -72,20 +69,6 @@ export const Today = ({ store, onSettingsTap }) => {
       addExtraIncome(amount, label || 'Entrata extra');
     }
     setSplice(null);
-  };
-
-  const onVoiceResult = ({ amount, label }) => {
-    if (voiceMode === 'income') {
-      if (amount >= 500) {
-        setSplice({ amount, label });
-      } else {
-        addExtraIncome(amount, label || 'Entrata extra');
-      }
-    } else {
-      const cat = suggestCategory(label, txs, cats) || homeCats[0] || cats[0]?.id;
-      addTx(amount, cat, label);
-    }
-    setVoiceMode(null);
   };
 
   return (
@@ -134,8 +117,6 @@ export const Today = ({ store, onSettingsTap }) => {
         txs={txs}
         onSubmit={onQuickSubmit}
         onLargeIncome={onLargeIncome}
-        onVoice={(mode) => setVoiceMode(mode)}
-        voiceSupported={isVoiceSupported()}
       />
 
       {/* Modals */}
@@ -152,11 +133,6 @@ export const Today = ({ store, onSettingsTap }) => {
         label={splice?.label}
         onConfirm={confirmSplice}
         onClose={() => setSplice(null)}
-      />
-      <VoiceCapture
-        open={!!voiceMode}
-        onClose={() => setVoiceMode(null)}
-        onResult={onVoiceResult}
       />
       <WhyCard
         open={!!why}

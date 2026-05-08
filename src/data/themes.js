@@ -48,6 +48,7 @@ export const themes = {
     name: 'Aurora',
     description: 'Verde · ciano · viola',
     preview: ['#34D399', '#22D3EE', '#A78BFA'],
+    swatchBg: 'linear-gradient(135deg, #34D399 0%, #22D3EE 50%, #A78BFA 100%)',
     bg: '#06121A',
     mesh: `
       radial-gradient(ellipse 65% 45% at 18% 0%, rgba(52,211,153,0.22) 0%, transparent 55%),
@@ -74,8 +75,9 @@ export const themes = {
   acid: {
     id: 'acid',
     name: 'Acid Lime',
-    description: 'Grigio + verde acido',
-    preview: ['#BEF264', '#27272A', '#52525B'],
+    description: 'Verde acido · grigio · grafite',
+    preview: ['#BEF264', '#A8A29E', '#52525B'],
+    swatchBg: 'linear-gradient(135deg, #BEF264 0%, #A8A29E 60%, #27272A 100%)',
     bg: '#0A0A0B',
     mesh: `
       radial-gradient(ellipse 70% 45% at 15% 0%, rgba(190,242,100,0.16) 0%, transparent 55%),
@@ -101,8 +103,9 @@ export const themes = {
   prism: {
     id: 'prism',
     name: 'Prism',
-    description: 'Rosa · viola · ciano',
+    description: 'Rosa · viola · azzurro',
     preview: ['#F472B6', '#A78BFA', '#60A5FA'],
+    swatchBg: 'linear-gradient(135deg, #F472B6 0%, #A78BFA 50%, #60A5FA 100%)',
     bg: '#06061A',
     mesh: `
       radial-gradient(ellipse 70% 45% at 20% 0%, rgba(96,165,250,0.22) 0%, transparent 55%),
@@ -128,8 +131,9 @@ export const themes = {
   sunset: {
     id: 'sunset',
     name: 'Sunset',
-    description: 'Arancio · rosa · peach',
-    preview: ['#FB923C', '#F472B6', '#FCD34D'],
+    description: 'Oro · arancio · rosa',
+    preview: ['#FCD34D', '#FB923C', '#F472B6'],
+    swatchBg: 'linear-gradient(135deg, #FCD34D 0%, #FB923C 50%, #F472B6 100%)',
     bg: '#1A0A0A',
     mesh: `
       radial-gradient(ellipse 70% 45% at 15% 0%, rgba(251,146,60,0.24) 0%, transparent 55%),
@@ -155,8 +159,9 @@ export const themes = {
   ocean: {
     id: 'ocean',
     name: 'Ocean',
-    description: 'Cyan · blu · indaco',
+    description: 'Ciano · blu · indaco',
     preview: ['#22D3EE', '#60A5FA', '#818CF8'],
+    swatchBg: 'linear-gradient(135deg, #22D3EE 0%, #60A5FA 50%, #818CF8 100%)',
     bg: '#02081A',
     mesh: `
       radial-gradient(ellipse 75% 45% at 20% 0%, rgba(34,211,238,0.24) 0%, transparent 55%),
@@ -182,8 +187,9 @@ export const themes = {
   mono: {
     id: 'mono',
     name: 'Mono',
-    description: 'Solo grigi, minimale',
-    preview: ['#E7E5E4', '#57534E', '#1C1917'],
+    description: 'Bianco · grigio · grafite',
+    preview: ['#F5F5F4', '#A8A29E', '#44403C'],
+    swatchBg: 'linear-gradient(135deg, #F5F5F4 0%, #A8A29E 50%, #44403C 100%)',
     bg: '#0A0A0A',
     mesh: `
       radial-gradient(ellipse 70% 40% at 20% 0%, rgba(255,255,255,0.07) 0%, transparent 55%),

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IcPlus, IcEdit, IcArrowOut, IcArrowIn, IcMic, IcAlert, IcSpark, IcX } from '../lib/icons.jsx';
+import { IcPlus, IcEdit, IcArrowOut, IcArrowIn, IcAlert, IcSpark, IcX } from '../lib/icons.jsx';
 import { iconForCategory } from '../lib/icons.jsx';
 import { parseNum, $d, cn } from '../lib/format.js';
 import { haptic } from '../lib/haptic.js';
@@ -21,8 +21,6 @@ export const QuickAdd = ({
   onSubmit,
   onLargeIncome,
   onEditCats,
-  onVoice,
-  voiceSupported,
 }) => {
   const [tab, setTab] = useState('spend');
   const [open, setOpen] = useState(false);
@@ -123,16 +121,6 @@ export const QuickAdd = ({
             Registra <span className="accent">{tab === 'spend' ? 'spesa' : 'entrata'}</span>
             <span style={{ color: 'var(--fg-4)' }}> · tap qui</span>
           </span>
-          {voiceSupported && (
-            <button
-              type="button"
-              className="quick-voice"
-              onClick={(e) => { e.stopPropagation(); onVoice?.(tab); }}
-              aria-label="Aggiungi con voce"
-            >
-              <IcMic />
-            </button>
-          )}
         </button>
       </div>
 
