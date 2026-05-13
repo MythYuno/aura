@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
+import { maskedMoney } from '../lib/format.js';
 
 /**
  * Bar chart of the last 12 months. Current month highlighted in accent.
  *
  * @param months — Array<{ key, label, total, isCurrent }>
  */
-export const YearBars = ({ months, onMonthTap }) => {
+export const YearBars = ({ months, onMonthTap, privacy = false }) => {
   const max = Math.max(1, ...months.map((m) => m.total));
   const min = Math.min(...months.filter((m) => m.total > 0).map((m) => m.total)) || 0;
   const peak = Math.max(...months.map((m) => m.total));
@@ -21,7 +22,7 @@ export const YearBars = ({ months, onMonthTap }) => {
               type="button"
               onClick={() => onMonthTap?.(m)}
               className={`yb ${m.isCurrent ? 'current' : ''}`}
-              aria-label={`${m.label}: €${Math.round(m.total)}`}
+              aria-label={privacy ? `${m.label}: importo nascosto` : `${m.label}: €${Math.round(m.total)}`}
             >
               <motion.div
                 className={`yb-fill ${m.total > 0 ? 'has' : ''}`}
@@ -36,8 +37,8 @@ export const YearBars = ({ months, onMonthTap }) => {
       </div>
       {peak > 0 && (
         <div className="year-bars-num">
-          <span>min <strong>€{Math.round(min)}</strong></span>
-          <span>max <strong>€{Math.round(peak)}</strong></span>
+          <span>min <strong>€{maskedMoney(min, { privacy })}</strong></span>
+          <span>max <strong>€{maskedMoney(peak, { privacy })}</strong></span>
         </div>
       )}
     </div>

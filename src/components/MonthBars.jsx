@@ -13,7 +13,7 @@ import { realCost } from '../lib/format.js';
  *
  * Tap on any bar → onDayTap({ ts, total, txs })
  */
-export const MonthBars = ({ txs, periodStart, periodEnd, dayOfPeriod, onDayTap }) => {
+export const MonthBars = ({ txs, periodStart, periodEnd, dayOfPeriod, onDayTap, privacy = false }) => {
   const days = Math.max(1, Math.round((periodEnd - periodStart) / 864e5));
 
   const timeline = useMemo(() => {
@@ -85,7 +85,7 @@ export const MonthBars = ({ txs, periodStart, periodEnd, dayOfPeriod, onDayTap }
                 className={`mb ${isToday ? 'today' : ''}`}
                 onClick={() => v > 0 && onDayTap?.(periodStart.getTime() + i * 864e5)}
                 disabled={isFuture || v === 0}
-                aria-label={`Giorno ${i + 1}: €${Math.round(v)}`}
+                aria-label={privacy ? `Giorno ${i + 1}: importo nascosto` : `Giorno ${i + 1}: €${Math.round(v)}`}
               >
                 <motion.div
                   className={`mb-fill ${tone}`}
@@ -93,7 +93,7 @@ export const MonthBars = ({ txs, periodStart, periodEnd, dayOfPeriod, onDayTap }
                   animate={{ height: `${isFuture ? 0 : heightPct}%` }}
                   transition={{ duration: 0.4, delay: 0.02 * i, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  {lbl && (
+                  {lbl && !privacy && (
                     <span className={`mb-label ${lbl.side === 'left' ? 'shift-left' : 'shift-right'}`}>
                       {lbl.text}
                     </span>

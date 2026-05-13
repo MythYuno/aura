@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-v4-4';
+const CACHE_NAME = 'aura-v5-1';
 const STATIC = ['./manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {

@@ -12,6 +12,23 @@ const startOfDay = (d = new Date()) => {
   return x;
 };
 
+// resetDay is the day of the month the budget period restarts. Clamped 1..28
+// so we never reference Feb 29/30/31 (or April 31, etc).
+const clampResetDay = (d) => {
+  const n = parseInt(d);
+  if (!Number.isFinite(n)) return 1;
+  return Math.max(1, Math.min(28, n));
+};
+
+const dayInMonth = (year, monthZeroBased, day) => {
+  const max = new Date(year, monthZeroBased + 1, 0).getDate();
+  return Math.min(Math.max(1, day), max);
+};
+
+const monthAnchor = (year, monthZeroBased, day) => {
+  return new Date(year, monthZeroBased, dayInMonth(year, monthZeroBased, day));
+};
+
 export const useStore = () => {
   const stored = useMemo(() => load(), []);
   const [booted, setBooted] = useState(!!stored);
@@ -38,7 +55,8 @@ export const useStore = () => {
 
   const [name, setName] = useState(stored?.name || '');
   const [salary, setSalary] = useState(stored?.salary || 0);
-  const [resetDay, setResetDay] = useState(stored?.resetDay || 1);
+  const [resetDay, setResetDayRaw] = useState(clampResetDay(stored?.resetDay || 1));
+  const setResetDay = (v) => setResetDayRaw(clampResetDay(v));
   const [currentSavings, setCurrentSavings] = useState(stored?.currentSavings || 0);
 
   // Salary override: if the user gets paid more/less in a given month, they
@@ -124,12 +142,13 @@ export const useStore = () => {
   }, []);
 
   const computePeriod = (offset = 0) => {
-    const d = new Date(now.getFullYear(), now.getMonth(), resetDay);
-    if (d > now) d.setMonth(d.getMonth() - 1);
-    d.setMonth(d.getMonth() - offset);
-    const end = new Date(d);
-    end.setMonth(end.getMonth() + 1);
-    return { start: d, end };
+    const candidate = monthAnchor(now.getFullYear(), now.getMonth(), resetDay);
+    const currentMonthBase = candidate > now ? now.getMonth() - 1 : now.getMonth();
+    const target = new Date(now.getFullYear(), currentMonthBase - offset, 1);
+    const start = monthAnchor(target.getFullYear(), target.getMonth(), resetDay);
+    const next = new Date(target.getFullYear(), target.getMonth() + 1, 1);
+    const end = monthAnchor(next.getFullYear(), next.getMonth(), resetDay);
+    return { start, end };
   };
 
   const periodStart = useMemo(() => computePeriod(0).start, [resetDay, todayKey]);

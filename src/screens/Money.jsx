@@ -11,7 +11,7 @@ import {
 import { iconForCategory } from '../lib/icons.jsx';
 import { categoryHistoricalStats } from '../lib/stats.js';
 import { categoryForecast } from '../lib/forecast.js';
-import { realCost, parseNum, uid, $n, cn } from '../lib/format.js';
+import { realCost, parseNum, uid, $n, cn, maskedMoney } from '../lib/format.js';
 import { NumberTicker } from '../components/ui/NumberTicker.jsx';
 import { haptic } from '../lib/haptic.js';
 
@@ -125,12 +125,12 @@ export const Money = ({ store, onSettingsTap }) => {
         <div style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--fg-3)', fontWeight: 700 }}>
           Ti restano da spendere
         </div>
-        <div className={cn('tnum', privacy && 'privacy-blur')} style={{ fontSize: 56, fontWeight: 100, letterSpacing: '-0.04em', lineHeight: 1, color: 'var(--fg)', marginTop: 4 }}>
+        <div className="tnum" style={{ fontSize: 56, fontWeight: 100, letterSpacing: '-0.04em', lineHeight: 1, color: 'var(--fg)', marginTop: 4 }}>
           <span style={{ fontSize: '0.45em', color: 'var(--fg-3)', marginRight: 4 }}>€</span>
-          <NumberTicker value={Math.max(0, freeBudget - totalSpent)} decimals={2} />
+          {privacy ? '***' : <NumberTicker value={Math.max(0, freeBudget - totalSpent)} decimals={2} />}
         </div>
         <p style={{ fontSize: 13, color: 'var(--fg-2)', marginTop: 8 }}>
-          Su <strong style={{ color: 'var(--accent)' }}>€{$n(freeBudget)}</strong> liberi questo mese.
+          Su <strong style={{ color: 'var(--accent)' }}>€{maskedMoney(freeBudget, { privacy })}</strong> liberi questo mese.
         </p>
       </div>
 
@@ -138,15 +138,15 @@ export const Money = ({ store, onSettingsTap }) => {
       <div className="waterfall">
         <div className="waterfall-cell income">
           <div className="lbl">Entrate</div>
-          <div className="vl">+€{$n(effectiveSalary)}</div>
+          <div className="vl">+€{maskedMoney(effectiveSalary, { privacy })}</div>
         </div>
         <div className="waterfall-cell committed">
           <div className="lbl">Già impegnati</div>
-          <div className="vl">−€{$n(totalLocked)}</div>
+          <div className="vl">−€{maskedMoney(totalLocked, { privacy })}</div>
         </div>
         <div className="waterfall-cell free">
           <div className="lbl">Liberi</div>
-          <div className="vl">€{$n(freeBudget)}</div>
+          <div className="vl">€{maskedMoney(freeBudget, { privacy })}</div>
         </div>
       </div>
 
@@ -159,11 +159,11 @@ export const Money = ({ store, onSettingsTap }) => {
       >
         <span className="ic" style={{ color: 'var(--accent)' }}><IcSalary /></span>
         <div className="body">
-          <div className="title"><strong>€{$n(effectiveSalary)}</strong> · stipendio del mese</div>
+          <div className="title"><strong>€{maskedMoney(effectiveSalary, { privacy })}</strong> · stipendio del mese</div>
           <div className="sub">
             {effectiveSalary === salary
               ? `Atteso intorno al ${store.resetDay} · tap per rettificare`
-              : `Rettificato (default €${$n(salary)}) · tap per modificare`}
+              : `Rettificato (default €${maskedMoney(salary, { privacy })}) · tap per modificare`}
           </div>
         </div>
         <IcChevR />
@@ -179,7 +179,7 @@ export const Money = ({ store, onSettingsTap }) => {
         <span className="ic" style={{ color: 'var(--purple)' }}><IcShield /></span>
         <div className="body">
           <div className="title">
-            <strong>€{$n(annualMonthly)}</strong> accantonati per spese annuali
+            <strong>€{maskedMoney(annualMonthly, { privacy })}</strong> accantonati per spese annuali
           </div>
           <div className="sub">
             {annualExpenses.length === 0
@@ -198,7 +198,7 @@ export const Money = ({ store, onSettingsTap }) => {
           <span className="ic" style={{ color: 'var(--info)' }}><IcArrowIn /></span>
           <div className="body">
             <div className="title">
-              <strong>+€{$n(futureExtras.reduce((s, e) => s + e.amount, 0))}</strong> in arrivo
+              <strong>+€{maskedMoney(futureExtras.reduce((s, e) => s + e.amount, 0), { privacy })}</strong> in arrivo
             </div>
             <div className="sub">
               {futureExtras.slice(0, 1).map((e) => `${e.label} · ${humanizeRelative(e.ts)}`).join(' · ')}
@@ -211,7 +211,7 @@ export const Money = ({ store, onSettingsTap }) => {
       <div className="money-card subtle">
         <span className="ic" style={{ color: 'var(--fg-3)' }}><IcClock /></span>
         <div className="body" style={{ fontSize: 12, color: 'var(--fg-2)' }}>
-          <strong style={{ color: 'var(--fg)' }}>€{$n(totalLocked)}</strong> impegnati ·
+          <strong style={{ color: 'var(--fg)' }}>€{maskedMoney(totalLocked, { privacy })}</strong> impegnati ·
           {' '}{fixed.length} fisse · {subscriptions.filter((s) => s.active !== false).length} abbon. ·
           {' '}imprevisti {buffer}%
         </div>
@@ -221,7 +221,7 @@ export const Money = ({ store, onSettingsTap }) => {
       <div className="area-section-title" data-tut="areas">
         <span className="ttl">Dove sono andati</span>
         <span className="meta">
-          <strong>€{$n(totalSpent)}</strong> · {pTxs.length} {pTxs.length === 1 ? 'spesa' : 'spese'}
+          <strong>€{maskedMoney(totalSpent, { privacy })}</strong> · {pTxs.length} {pTxs.length === 1 ? 'spesa' : 'spese'}
         </span>
       </div>
 
@@ -234,7 +234,7 @@ export const Money = ({ store, onSettingsTap }) => {
               <div className="name">{a.label}</div>
               <div className="now" style={{
                 color: a.status === 'up' ? 'var(--warn)' : 'var(--fg)',
-              }}>€{$n(a.spent)}</div>
+              }}>€{maskedMoney(a.spent, { privacy })}</div>
               {a.n > 0 && (
                 <div className={cn('area-delta', a.status)}>
                   {a.status === 'up' ? `+${Math.round(a.deltaPct)}%`
@@ -256,7 +256,7 @@ export const Money = ({ store, onSettingsTap }) => {
             <div className="area-meta">
               {a.mean > 0 ? (
                 <>
-                  <div className="item">media <strong>€{$n(a.mean)}/mese</strong></div>
+                  <div className="item">media <strong>€{maskedMoney(a.mean, { privacy })}/mese</strong></div>
                   <div className="sep">·</div>
                 </>
               ) : (
@@ -292,7 +292,7 @@ export const Money = ({ store, onSettingsTap }) => {
           onChange={(e) => setSalaryInput(e.target.value)}
         />
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <Button variant="default" size="lg" className="flex-1" onClick={resetSalaryEdit}>Default €{$n(salary)}</Button>
+          <Button variant="default" size="lg" className="flex-1" onClick={resetSalaryEdit}>Default €{maskedMoney(salary, { privacy })}</Button>
           <Button variant="primary" size="lg" className="flex-1" onClick={submitSalaryEdit}>Salva</Button>
         </div>
       </Sheet>
@@ -310,11 +310,11 @@ export const Money = ({ store, onSettingsTap }) => {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{e.label}</div>
                   <div style={{ fontSize: 11, color: 'var(--fg-3)' }}>
-                    €{$n(e.amount)} · scade a {monthName(e.dueMonth)}
+                    €{maskedMoney(e.amount, { privacy })} · scade a {monthName(e.dueMonth)}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>€{$n(e.amount / 12)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>€{maskedMoney(e.amount / 12, { privacy })}</div>
                   <div style={{ fontSize: 9, color: 'var(--fg-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>/mese</div>
                 </div>
                 <button

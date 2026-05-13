@@ -7,7 +7,7 @@ import { DayDetail } from '../components/DayDetail.jsx';
 import { IcChevR, IcChevL, IcAlert, IcX } from '../lib/icons.jsx';
 import { iconForCategory } from '../lib/icons.jsx';
 import { findAnomalies } from '../lib/anomaly.js';
-import { realCost, $d, $n, cn } from '../lib/format.js';
+import { realCost, maskedMoney } from '../lib/format.js';
 import { NumberTicker } from '../components/ui/NumberTicker.jsx';
 
 /**
@@ -106,7 +106,7 @@ export const History = ({ store }) => {
             onClick={() => setOffset((o) => o + 1)}
             aria-label="Mese precedente"
             disabled={offset >= 11}
-            style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--glass2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-3)', cursor: 'pointer', opacity: offset >= 11 ? 0.4 : 1 }}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--glass2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-3)', cursor: 'pointer', opacity: offset >= 11 ? 0.4 : 1 }}
           >
             <IcChevL />
           </button>
@@ -120,13 +120,13 @@ export const History = ({ store }) => {
             onClick={() => setOffset((o) => Math.max(0, o - 1))}
             aria-label="Mese successivo"
             disabled={offset === 0}
-            style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--glass2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-3)', cursor: 'pointer', opacity: offset === 0 ? 0.4 : 1 }}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--glass2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-3)', cursor: 'pointer', opacity: offset === 0 ? 0.4 : 1 }}
           >
             <IcChevR />
           </button>
         </div>
-        <div className={cn('tnum', privacy && 'privacy-blur')} style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)' }}>
-          €{$d(monthTotal)}
+        <div className="tnum" style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)' }}>
+          €{maskedMoney(monthTotal, { privacy, decimals: 2 })}
         </div>
       </div>
 
@@ -134,9 +134,9 @@ export const History = ({ store }) => {
         <div style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
           {monthLabel}
         </div>
-        <div className={cn('tnum', privacy && 'privacy-blur')} style={{ fontSize: 44, fontWeight: 200, letterSpacing: '-0.04em', lineHeight: 1 }}>
+        <div className="tnum" style={{ fontSize: 44, fontWeight: 200, letterSpacing: '-0.04em', lineHeight: 1 }}>
           <span style={{ fontSize: '0.5em', color: 'var(--fg-3)', marginRight: 4 }}>€</span>
-          <NumberTicker value={monthTotal} decimals={0} />
+          {privacy ? '***' : <NumberTicker value={monthTotal} decimals={0} />}
         </div>
         {prevTotal > 0 && (
           <div style={{ fontSize: 12, color: deltaPct < 0 ? 'var(--accent)' : deltaPct > 5 ? 'var(--warn)' : 'var(--fg-3)', marginTop: 8, fontWeight: 500 }}>
@@ -151,6 +151,7 @@ export const History = ({ store }) => {
       <div data-tut="year">
         <YearBars
           months={yearMonths}
+          privacy={privacy}
           onMonthTap={(m) => setOffset(m.offset)}
         />
       </div>
@@ -173,7 +174,7 @@ export const History = ({ store }) => {
               >
                 <IcAlert />
                 <span>
-                  {humanizeDay(a.ts)} <strong>€{$d(realCost(a))} di {a.label || cat?.label || 'spesa'}</strong> — {a._anomaly.multiple.toFixed(1)}× la tua media
+                  {humanizeDay(a.ts)} <strong>€{maskedMoney(realCost(a), { privacy, decimals: 2 })} di {a.label || cat?.label || 'spesa'}</strong> — {a._anomaly.multiple.toFixed(1)}× la tua media
                 </span>
               </button>
             );
@@ -199,6 +200,7 @@ export const History = ({ store }) => {
           <input
             type="text"
             placeholder="Cerca per descrizione, categoria, importo…"
+            aria-label="Cerca transazioni"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -216,7 +218,7 @@ export const History = ({ store }) => {
             <button
               onClick={() => setSearch('')}
               aria-label="Pulisci ricerca"
-              style={{ background: 'transparent', border: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 2 }}
+              style={{ width: 32, height: 32, borderRadius: 8, background: 'transparent', border: 'none', color: 'var(--fg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <IcX style={{ width: 14, height: 14 }} />
             </button>
@@ -240,7 +242,7 @@ export const History = ({ store }) => {
               <div key={key} className="day-group">
                 <div className="day-header">
                   <div className="day-name">{humanizeDay(items[0].ts)}</div>
-                  <div className={cn('day-total', privacy && 'privacy-blur')}>€{$d(total)}</div>
+                  <div className="day-total">€{maskedMoney(total, { privacy, decimals: 2 })}</div>
                 </div>
                 {items.map((t) => {
                   const cat = cats.find((c) => c.id === t.cat);
@@ -265,7 +267,7 @@ export const History = ({ store }) => {
                           {' · '}{cat?.label || '—'}
                         </div>
                       </div>
-                      <div className={cn('tx-amt', privacy && 'privacy-blur')}>€{$d(realCost(t))}</div>
+                      <div className="tx-amt">€{maskedMoney(realCost(t), { privacy, decimals: 2 })}</div>
                     </button>
                   );
                 })}
@@ -280,6 +282,7 @@ export const History = ({ store }) => {
         dayTs={dayTs}
         allTxs={txs}
         cats={cats}
+        privacy={privacy}
         onClose={() => setDayTs(null)}
       />
 

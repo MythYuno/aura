@@ -16,6 +16,7 @@ import { SettingsScreen } from './screens/SettingsScreen.jsx';
 import { Logo } from './components/ui/Logo.jsx';
 import { Sheet } from './components/ui/Sheet.jsx';
 import { UndoToast } from './components/ui/UndoToast.jsx';
+import { UpdateToast } from './components/UpdateToast.jsx';
 import { IcEye, IcEyeOff, IcSettings } from './lib/icons.jsx';
 import { clearStorage } from './lib/storage.js';
 import { haptic } from './lib/haptic.js';
@@ -106,9 +107,21 @@ export default function App() {
     store.setName(data.name);
     store.setSalary(data.salary);
     store.setResetDay(data.day);
+    store.setCurrentSavings(data.initialBalance || 0);
     if (data.fixed?.length) store.setFixed(data.fixed);
     if (data.annualExpenses?.length) store.setAnnualExpenses(data.annualExpenses);
     if (data.subscriptions?.length) store.setSubscriptions(data.subscriptions);
+    if ((data.initialBalance || 0) > 0) {
+      const id = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now());
+      store.setExtraIncomes((p) => [...p, {
+        id,
+        amount: data.initialBalance,
+        label: 'Saldo iniziale',
+        ts: Date.now(),
+      }]);
+    }
     if (typeof data.buffer === 'number') store.setBuffer(data.buffer);
     store.setBooted(true);
   };
@@ -257,6 +270,7 @@ export default function App() {
         </Sheet>
 
         <UndoToast toast={toast} onUndo={undo} onDismiss={dismiss} />
+        <UpdateToast />
       </div>
     </ToastContext.Provider>
   );

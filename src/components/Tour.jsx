@@ -29,14 +29,31 @@ const TOURS = {
 };
 
 const PADDING = 12; // viewport margin for tooltip
+const MIN_SPOTLIGHT = 24;
+
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+const toSpotlightRect = (r) => {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const x = clamp(r.left - 6, PADDING, vw - PADDING - MIN_SPOTLIGHT);
+  const y = clamp(r.top - 6, PADDING, vh - PADDING - MIN_SPOTLIGHT);
+  const maxW = Math.max(MIN_SPOTLIGHT, vw - PADDING - x);
+  const maxH = Math.max(MIN_SPOTLIGHT, vh - PADDING - y);
+  const w = clamp(r.width + 12, MIN_SPOTLIGHT, maxW);
+  const h = clamp(r.height + 12, MIN_SPOTLIGHT, maxH);
+  return { x, y, w, h };
+};
 
 // Try repeatedly to find target; if not found within deadline, skip step.
 const useTargetRect = (target, key, deadlineMs = 1500) => {
   const [rect, setRect] = useState(null);
   const [missed, setMissed] = useState(false);
+  const didScrollRef = useRef(false);
   useEffect(() => {
     setRect(null);
     setMissed(false);
+    didScrollRef.current = false;
     if (!target) return;
     const start = performance.now();
     let stop = false;
@@ -51,7 +68,21 @@ const useTargetRect = (target, key, deadlineMs = 1500) => {
           raf = requestAnimationFrame(find);
           return;
         }
-        setRect({ x: r.left - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 });
+
+        // Keep target inside viewport before highlighting (important for
+        // long, scrollable screens where targets can start off-screen).
+        const isOut =
+          r.top < PADDING ||
+          r.bottom > window.innerHeight - PADDING ||
+          r.left < PADDING ||
+          r.right > window.innerWidth - PADDING;
+        if (isOut && !didScrollRef.current) {
+          didScrollRef.current = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          raf = requestAnimationFrame(find);
+          return;
+        }
+        setRect(toSpotlightRect(r));
         return;
       }
       if (performance.now() - start > deadlineMs) {
@@ -66,7 +97,7 @@ const useTargetRect = (target, key, deadlineMs = 1500) => {
       if (el) {
         const r = el.getBoundingClientRect();
         if (r.width > 0 || r.height > 0) {
-          setRect({ x: r.left - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 });
+          setRect(toSpotlightRect(r));
         }
       }
     };
@@ -115,6 +146,7 @@ export const Tour = ({ tourId, open, onClose }) => {
   const vw = typeof window !== 'undefined' ? window.innerWidth : 400;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
   const tooltipMaxW = Math.min(360, vw - PADDING * 2);
+  const tooltipMaxH = Math.max(170, vh - PADDING * 2);
 
   let tooltipStyle;
   if (!rect) {
@@ -124,29 +156,29 @@ export const Tour = ({ tourId, open, onClose }) => {
       left: PADDING,
       right: PADDING,
       maxWidth: tooltipMaxW,
+      maxHeight: tooltipMaxH,
       marginInline: 'auto',
       transform: 'translateY(-50%)',
     };
   } else {
-    const targetCenterY = rect.y + rect.h / 2;
-    const placeAbove = targetCenterY > vh * 0.55;
-    if (placeAbove) {
-      tooltipStyle = {
-        bottom: vh - rect.y + 14,
-        left: PADDING,
-        right: PADDING,
-        maxWidth: tooltipMaxW,
-        marginInline: 'auto',
-      };
-    } else {
-      tooltipStyle = {
-        top: rect.y + rect.h + 14,
-        left: PADDING,
-        right: PADDING,
-        maxWidth: tooltipMaxW,
-        marginInline: 'auto',
-      };
-    }
+    const estimatedH = Math.min(260, tooltipMaxH);
+    const spaceAbove = rect.y - PADDING;
+    const spaceBelow = vh - (rect.y + rect.h) - PADDING;
+    const placeAbove =
+      (spaceAbove >= estimatedH && spaceAbove >= spaceBelow) ||
+      (spaceBelow < estimatedH && spaceAbove > spaceBelow);
+    const preferredTop = placeAbove
+      ? rect.y - estimatedH - 14
+      : rect.y + rect.h + 14;
+    const clampedTop = clamp(preferredTop, PADDING, vh - PADDING - estimatedH);
+    tooltipStyle = {
+      top: clampedTop,
+      left: PADDING,
+      right: PADDING,
+      maxWidth: tooltipMaxW,
+      maxHeight: tooltipMaxH,
+      marginInline: 'auto',
+    };
   }
 
   return (

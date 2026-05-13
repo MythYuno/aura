@@ -201,11 +201,11 @@ body::after {
 }
 
 .privacy-blur {
-  /* gentler than blur(12) — keeps shape but kills detail.
-     Numbers stay legible-as-glyphs while the value is masked. */
-  filter: blur(7px) saturate(0.6);
-  opacity: 0.85;
-  transition: filter 0.4s var(--ease), opacity 0.4s var(--ease);
+  /* Legacy class kept for compatibility.
+     Privacy mode now masks values in-render with "***". */
+  filter: none;
+  opacity: 1;
+  transition: none;
   user-select: none;
   pointer-events: none;
 }
@@ -464,7 +464,7 @@ button:disabled,
 /* ─── Hero "respiro" ─── */
 .breath-hero {
   margin: 4px -22px 0;
-  padding: 8px 22px 16px;
+  padding: 12px 22px 18px;
   text-align: center;
   position: relative;
 }
@@ -488,12 +488,13 @@ button:disabled,
   margin-bottom: 6px;
 }
 .breath-hero .num {
-  font-size: clamp(80px, 22vw, 110px);
+  font-size: clamp(74px, 21vw, 106px);
   font-weight: 100;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   line-height: 0.92;
   color: var(--fg);
   position: relative;
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 .breath-hero .num .currency {
   font-size: 0.4em; vertical-align: top; color: var(--fg-3);
@@ -503,21 +504,23 @@ button:disabled,
   font-size: 0.4em; color: var(--fg-3); font-weight: 300;
 }
 .breath-hero .one-liner {
-  font-size: 14px; color: var(--fg-2);
+  font-size: 13px; color: var(--fg-2);
   margin-top: 8px; line-height: 1.55;
-  max-width: 280px; margin-left: auto; margin-right: auto;
+  max-width: 300px; margin-left: auto; margin-right: auto;
 }
 .breath-hero .one-liner strong { color: var(--fg); font-weight: 600; }
 
 /* ─── MonthBars ─── */
 .month-bars {
   margin: 14px -22px 0;
-  padding: 14px 22px 8px;
+  padding: 12px 22px 10px;
   position: relative;
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass) 80%, transparent), transparent);
 }
 .month-bars-canvas {
   position: relative;
-  height: 110px;
+  height: 116px;
   padding-top: 28px;
 }
 .avg-h-line {
@@ -562,7 +565,7 @@ button:disabled,
 .mb-fill {
   width: 100%;
   background: var(--surface-2, rgba(255,255,255,0.07));
-  border-radius: 2px;
+  border-radius: 4px 4px 2px 2px;
   transition: height 0.4s var(--ease);
   position: relative;
 }
@@ -612,7 +615,7 @@ button:disabled,
   border-top-color: var(--accent);
 }
 .month-bars-axis {
-  margin-top: 6px;
+  margin-top: 8px;
   display: flex; justify-content: space-between;
   font-size: 9px; color: var(--fg-4);
   letter-spacing: 0.1em; font-weight: 600;
@@ -621,8 +624,10 @@ button:disabled,
 
 /* ─── YearBars ─── */
 .year-bars {
-  margin-bottom: 22px;
-  padding: 14px 0;
+  margin-bottom: 20px;
+  padding: 12px 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass) 75%, transparent), transparent);
 }
 .year-bars-canvas {
   display: grid;
@@ -641,7 +646,7 @@ button:disabled,
 .yb-fill {
   width: 100%;
   background: var(--fg-5);
-  border-radius: 4px 4px 0 0;
+  border-radius: 6px 6px 2px 2px;
   transition: height 0.5s var(--ease);
 }
 .yb-fill.has { background: linear-gradient(180deg, var(--fg-3), var(--fg-4)); }
@@ -666,10 +671,11 @@ button:disabled,
 /* ─── ForecastBox ─── */
 .forecast-box {
   margin-top: 12px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   background: linear-gradient(135deg, var(--accent-10), var(--glass));
   border: 1px solid var(--accent-20);
   border-radius: 14px;
+  box-shadow: 0 8px 24px -18px var(--accent-glow);
 }
 .forecast-box .lbl {
   font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
@@ -703,10 +709,11 @@ button:disabled,
 /* ─── QuickAdd ─── */
 .quick-block {
   margin-top: 14px;
-  background: var(--glass);
+  background: linear-gradient(180deg, var(--glass), color-mix(in srgb, var(--glass2) 60%, transparent));
   border: 1px solid var(--glass-bd);
   border-radius: 16px;
   padding: 12px;
+  box-shadow: 0 14px 28px -22px rgba(0,0,0,0.5);
 }
 .quick-tabs {
   display: flex; gap: 4px;
@@ -818,14 +825,15 @@ button:disabled,
 }
 .qa-head-tab .ic { width: 11px; height: 11px; }
 .qa-close {
-  width: 30px; height: 30px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   background: var(--glass2);
   display: flex; align-items: center; justify-content: center;
   color: var(--fg-3);
   border: none; cursor: pointer;
 }
-.qa-close svg { width: 13px; height: 13px; }
+.qa-close svg { width: 14px; height: 14px; }
+.qa-close:hover { background: var(--surface-3); color: var(--fg-2); }
 .qa-lbl {
   display: block;
   font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
@@ -1047,14 +1055,15 @@ button:disabled,
   font-size: 11px; color: var(--fg-3); letter-spacing: 0.1em; font-weight: 600;
 }
 .day-sheet-head .close {
-  width: 28px; height: 28px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   background: var(--glass2); border: none;
   display: flex; align-items: center; justify-content: center;
   color: var(--fg-3);
   cursor: pointer;
 }
-.day-sheet-head .close svg { width: 12px; height: 12px; }
+.day-sheet-head .close svg { width: 14px; height: 14px; }
+.day-sheet-head .close:hover { background: var(--surface-3); color: var(--fg-2); }
 .day-sheet-total { text-align: center; margin-bottom: 14px; }
 .day-sheet-total .v {
   font-size: 32px; font-weight: 200; letter-spacing: -0.03em; line-height: 1;
@@ -1124,6 +1133,11 @@ button:disabled,
 }
 
 /* ─── Tour walkthrough ─── */
+[data-tut] {
+  scroll-margin-top: 108px;
+  scroll-margin-bottom: 120px;
+}
+
 .tour-overlay {
   position: fixed; inset: 0; z-index: 9000;
 }
@@ -1148,6 +1162,8 @@ button:disabled,
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 20px 48px rgba(0,0,0,0.5);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .tour-tooltip .head {
   display: flex; align-items: center; justify-content: space-between;
@@ -1407,14 +1423,67 @@ button:disabled,
 /* ─── Common: bg-2 fallback ─── */
 :root { --bg-2: var(--bg); }
 
+/* ─── UpdateToast ─── */
+.update-toast {
+  position: fixed;
+  bottom: calc(95px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px 10px 14px;
+  background: rgba(20, 25, 33, 0.92);
+  border: 1px solid var(--accent-20);
+  border-radius: 18px;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 24px var(--accent-glow);
+  z-index: 200;
+  max-width: calc(100vw - 32px);
+}
+.update-toast-ic {
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.update-toast p {
+  font-size: 13px; font-weight: 500;
+  color: var(--fg);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.update-toast-btn {
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #000;
+  font-size: 12px; font-weight: 700;
+  border: none; cursor: pointer;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.update-toast-x {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: transparent; border: none;
+  color: var(--fg-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.update-toast-x svg { width: 12px; height: 12px; }
+
 /* ─── Money cards (waterfall + summary) ─── */
 .waterfall {
   display: grid; grid-template-columns: 1fr 1fr 1fr;
-  background: var(--glass);
+  background: linear-gradient(180deg, var(--glass), color-mix(in srgb, var(--glass2) 55%, transparent));
   border: 1px solid var(--glass-bd);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 12px;
   margin-bottom: 14px;
+  box-shadow: 0 14px 30px -24px rgba(0,0,0,0.5);
 }
 .waterfall-cell { text-align: center; position: relative; }
 .waterfall-cell + .waterfall-cell::before {
@@ -1445,16 +1514,27 @@ button:disabled,
   margin-bottom: 8px;
   cursor: pointer;
   text-align: left;
+  transition: transform 0.22s var(--ease), border-color 0.22s var(--ease), background 0.22s var(--ease), box-shadow 0.22s var(--ease);
 }
 .money-card.subtle {
   background: transparent;
   cursor: default;
   padding: 8px 14px;
 }
+.money-card:not(.subtle):hover {
+  transform: translateY(-1px);
+  border-color: var(--glass-bd-2);
+  background: color-mix(in srgb, var(--glass2) 55%, var(--glass));
+  box-shadow: 0 16px 32px -24px rgba(0,0,0,0.5);
+}
 .money-card .ic {
   width: 18px; height: 18px;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--glass2) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-bd) 85%, transparent);
 }
 .money-card .ic svg { width: 18px; height: 18px; }
 .money-card .body { flex: 1; min-width: 0; }
@@ -1859,9 +1939,9 @@ button:disabled,
 }
 .anom-row {
   width: 100%;
-  padding: 10px 12px;
-  background: rgba(251,191,36,0.06);
-  border: 1px solid rgba(251,191,36,0.18);
+  padding: 11px 12px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.11), rgba(251,191,36,0.04));
+  border: 1px solid rgba(251,191,36,0.22);
   border-radius: 12px;
   display: flex; gap: 8px; align-items: flex-start;
   font-size: 12px;
@@ -1870,12 +1950,21 @@ button:disabled,
   margin-bottom: 6px;
   cursor: pointer;
   text-align: left;
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+.anom-row:hover {
+  transform: translateY(-1px);
+  border-color: rgba(251,191,36,0.35);
+  box-shadow: 0 10px 20px -16px rgba(251,191,36,0.5);
 }
 .anom-row svg { color: var(--warn); width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
 .anom-row strong { color: var(--warn); font-weight: 600; }
 
 .day-list { border-top: 1px solid var(--glass-bd); margin-top: 14px; }
-.day-group { padding: 12px 0; border-bottom: 1px solid var(--glass-bd); }
+.day-group {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--glass-bd);
+}
 .day-header {
   display: flex; justify-content: space-between; align-items: baseline;
   margin-bottom: 8px;
@@ -1890,9 +1979,18 @@ button:disabled,
 .tx-row {
   width: 100%;
   display: flex; align-items: center; gap: 12px;
-  padding: 8px 0;
-  background: transparent; border: none;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--glass) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-bd) 75%, transparent);
+  border-radius: 12px;
   cursor: pointer; text-align: left;
+  margin-bottom: 6px;
+  transition: transform 0.16s var(--ease), border-color 0.16s var(--ease), background 0.16s var(--ease);
+}
+.tx-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--glass-bd-2);
+  background: color-mix(in srgb, var(--glass2) 60%, transparent);
 }
 .tx-row .ic-mono {
   width: 36px; height: 36px;
@@ -1909,6 +2007,26 @@ button:disabled,
   font-size: 13px; font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--fg);
+}
+
+@media (max-width: 420px) {
+  .breath-hero {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+  .month-bars {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+  .waterfall {
+    padding: 10px;
+  }
+  .waterfall-cell .vl {
+    font-size: 13px;
+  }
+  .money-card {
+    padding: 11px 12px;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════

@@ -40,6 +40,7 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
   const [confirmCatDelete, setConfirmCatDelete] = useState(null); // { catId, count }
   const fileInputRef = useRef(null);
   const backupInputRef = useRef(null);
+  const clampResetDay = (v) => Math.max(1, Math.min(31, parseInt(v) || 1));
 
   const handleCSV = (e) => {
     const f = e.target.files?.[0];
@@ -98,7 +99,7 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
           </div>
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-1.5">Giorno paga</label>
-            <input className="inp" type="number" min={1} max={28} value={resetDay} onChange={(e) => setResetDay(parseInt(e.target.value) || 1)} />
+            <input className="inp" type="number" min={1} max={31} value={resetDay} onChange={(e) => setResetDay(clampResetDay(e.target.value))} />
           </div>
         </div>
       </Card>
@@ -138,6 +139,8 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
               <button
                 key={t.id}
                 onClick={() => { haptic('medium'); setThemeId(t.id); }}
+                aria-pressed={sel}
+                aria-label={`Tema ${t.name}`}
                 className="relative p-3 rounded-xl text-left transition-all border overflow-hidden"
                 style={{
                   background: sel ? 'var(--accent-10)' : 'var(--glass)',
@@ -145,8 +148,17 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
                 }}
               >
                 {sel && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--accent)' }}>
-                    <IcCheck style={{ width: 11, height: 11, color: '#000' }} />
+                  <div
+                    className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                    style={{
+                      zIndex: 2,
+                      background: 'var(--accent)',
+                      border: '1px solid color-mix(in srgb, var(--bg) 45%, transparent)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <IcCheck style={{ width: 11, height: 11, color: 'var(--bg)' }} />
                   </div>
                 )}
                 {/* Swatch a gradiente + tre dot dei colori dominanti */}
@@ -189,7 +201,7 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">Categorie scorciatoia</div>
-            <div className="text-[11px] text-fg-4">Scegli quali 4 mostrare nel quick-add</div>
+            <div className="text-[11px] text-fg-4">Scegli fino a 3 categorie da mostrare nel quick-add</div>
           </div>
           <IcChevR style={{ color: 'var(--fg-5)' }} />
         </div>
@@ -242,22 +254,29 @@ export const SettingsScreen = ({ store, onReset, onClose }) => {
                     style={{ background: 'var(--glass)', border: '1px solid var(--glass-bd)' }}
                   >
                     <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4 mb-2">Colore</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {availableColors.map((cl) => (
-                        <button
-                          key={cl}
-                          onClick={() => setCats((p) => p.map((x) => x.id === c.id ? { ...x, color: cl } : x))}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center"
-                          style={{
-                            background: cl,
-                            opacity: c.color === cl ? 1 : 0.5,
-                            outline: c.color === cl ? '2px solid var(--fg)' : 'none',
-                            outlineOffset: 1,
-                          }}
-                        >
-                          {c.color === cl && <IcCheck style={{ width: 12, height: 12, color: '#000' }} />}
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={`Colore per ${c.label}`}>
+                      {availableColors.map((cl) => {
+                        const sel = c.color === cl;
+                        return (
+                          <button
+                            key={cl}
+                            type="button"
+                            role="radio"
+                            aria-checked={sel}
+                            aria-label={`Colore ${cl}${sel ? ' (selezionato)' : ''}`}
+                            onClick={() => setCats((p) => p.map((x) => x.id === c.id ? { ...x, color: cl } : x))}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center"
+                            style={{
+                              background: cl,
+                              opacity: sel ? 1 : 0.55,
+                              outline: sel ? '2px solid var(--fg)' : 'none',
+                              outlineOffset: 1,
+                            }}
+                          >
+                            {sel && <IcCheck style={{ width: 12, height: 12, color: '#000' }} />}
+                          </button>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 )}

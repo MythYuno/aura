@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { IcX, IcAlert } from '../lib/icons.jsx';
 import { iconForCategory } from '../lib/icons.jsx';
-import { realCost, $d, cn } from '../lib/format.js';
+import { realCost, cn, maskedMoney } from '../lib/format.js';
 import { checkAnomaly } from '../lib/anomaly.js';
 
 /**
@@ -9,7 +9,7 @@ import { checkAnomaly } from '../lib/anomaly.js';
  * or a heatmap cell. Shows the day's transactions, total, and an anomaly
  * badge when applicable.
  */
-export const DayDetail = ({ open, dayTs, allTxs, cats, onClose, onCategoryTap }) => {
+export const DayDetail = ({ open, dayTs, allTxs, cats, onClose, onCategoryTap, privacy = false }) => {
   if (!open || dayTs == null) return null;
 
   const dayStart = new Date(dayTs);
@@ -64,7 +64,7 @@ export const DayDetail = ({ open, dayTs, allTxs, cats, onClose, onCategoryTap })
           </div>
           <div className="day-sheet-total">
             <div className="v">
-              <span className="currency">€</span>{total.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className="currency">€</span>{maskedMoney(total, { privacy, decimals: 2 })}
             </div>
             <div className="lb">Speso quel giorno</div>
             {topAnomaly && (
@@ -97,7 +97,7 @@ export const DayDetail = ({ open, dayTs, allTxs, cats, onClose, onCategoryTap })
                       </div>
                     </div>
                     <div className={cn('amt', anomalyByTx[t.id] && 'warn')}>
-                      €{$d(realCost(t))}
+                      €{maskedMoney(realCost(t), { privacy, decimals: 2 })}
                     </div>
                   </div>
                 );

@@ -26,6 +26,7 @@ export const Onboarding = ({ onDone }) => {
   const [form, setForm] = useState({
     name: '',
     salary: '',
+    initialBalance: '',
     day: '27',
     fixed: [],
     annual: [],
@@ -38,15 +39,16 @@ export const Onboarding = ({ onDone }) => {
 
   // Derived: how much is "free" with current inputs
   const salary = parseNum(form.salary);
+  const initialBalance = parseNum(form.initialBalance);
   const fixedTotal = form.fixed.reduce((s, f) => s + parseNum(f.amount || 0), 0);
   const annualMonthly = form.annual.reduce((s, e) => s + parseNum(e.amount || 0) / 12, 0);
   const subsTotal = form.subscriptions.reduce((s, x) => s + parseNum(x.amount || 0), 0);
   const bufferAmt = (salary * form.buffer) / 100;
-  const free = Math.max(0, salary - fixedTotal - annualMonthly - subsTotal - bufferAmt);
+  const free = Math.max(0, salary + initialBalance - fixedTotal - annualMonthly - subsTotal - bufferAmt);
 
   const canNext = () => {
     if (step === 1) return form.name.trim().length > 0;
-    if (step === 2) return salary > 0 && parseInt(form.day) >= 1 && parseInt(form.day) <= 28;
+    if (step === 2) return salary >= 0 && parseInt(form.day) >= 1 && parseInt(form.day) <= 31;
     return true;
   };
 
@@ -57,6 +59,7 @@ export const Onboarding = ({ onDone }) => {
       onDone({
         name: form.name.trim(),
         salary,
+        initialBalance,
         day: parseInt(form.day),
         fixed: form.fixed.map((f) => ({
           id: uid(),
@@ -112,11 +115,32 @@ export const Onboarding = ({ onDone }) => {
           >
             {step === 0 && <Welcome />}
             {step === 1 && <NameStep value={form.name} onChange={(v) => update({ name: v })} onNext={next} />}
-            {step === 2 && <SalaryStep value={form.salary} day={form.day} onChange={(v) => update({ salary: v })} onDayChange={(d) => update({ day: d })} />}
+            {step === 2 && (
+              <SalaryStep
+                value={form.salary}
+                initialBalance={form.initialBalance}
+                day={form.day}
+                onChange={(v) => update({ salary: v })}
+                onInitialBalanceChange={(v) => update({ initialBalance: v })}
+                onDayChange={(d) => update({ day: d })}
+              />
+            )}
             {step === 3 && <FixedStep items={form.fixed} setItems={(x) => update({ fixed: x })} />}
             {step === 4 && <AnnualStep items={form.annual} setItems={(x) => update({ annual: x })} />}
             {step === 5 && <SubsStep items={form.subscriptions} setItems={(x) => update({ subscriptions: x })} />}
-            {step === 6 && <BufferStep buffer={form.buffer} setBuffer={(b) => update({ buffer: b })} salary={salary} fixedTotal={fixedTotal} annualMonthly={annualMonthly} subsTotal={subsTotal} bufferAmt={bufferAmt} free={free} />}
+            {step === 6 && (
+              <BufferStep
+                buffer={form.buffer}
+                setBuffer={(b) => update({ buffer: b })}
+                salary={salary}
+                initialBalance={initialBalance}
+                fixedTotal={fixedTotal}
+                annualMonthly={annualMonthly}
+                subsTotal={subsTotal}
+                bufferAmt={bufferAmt}
+                free={free}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -175,11 +199,11 @@ const NameStep = ({ value, onChange, onNext }) => (
   </>
 );
 
-const SalaryStep = ({ value, day, onChange, onDayChange }) => (
+const SalaryStep = ({ value, initialBalance, day, onChange, onInitialBalanceChange, onDayChange }) => (
   <>
     <p className="onb-step-label">2 di 6</p>
     <h1 className="onb-question">Quanto guadagni al mese?</h1>
-    <p className="onb-help">Stipendio netto. Se varia di mese in mese, mettine uno medio — potrai sempre rettificare.</p>
+    <p className="onb-help">Stipendio netto. Se non e arrivato ancora, puoi lasciare 0 e iniziare dal saldo disponibile oggi.</p>
     <label className="onb-lbl">Stipendio netto</label>
     <div className="onb-input-prefix">
       <span>€</span>
@@ -192,9 +216,20 @@ const SalaryStep = ({ value, day, onChange, onDayChange }) => (
         autoFocus
       />
     </div>
+    <label className="onb-lbl" style={{ marginTop: 12 }}>Saldo disponibile oggi (opzionale)</label>
+    <div className="onb-input-prefix">
+      <span>€</span>
+      <input
+        type="text"
+        inputMode="decimal"
+        value={initialBalance}
+        onChange={(e) => onInitialBalanceChange(e.target.value)}
+        placeholder="Es. 100"
+      />
+    </div>
     <label className="onb-lbl" style={{ marginTop: 16 }}>Giorno paga (intorno a)</label>
     <div className="onb-grid7">
-      {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => {
+      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
         const sel = parseInt(day) === d;
         return (
           <button
@@ -394,7 +429,7 @@ const SubsStep = ({ items, setItems }) => {
   );
 };
 
-const BufferStep = ({ buffer, setBuffer, salary, fixedTotal, annualMonthly, subsTotal, bufferAmt, free }) => (
+const BufferStep = ({ buffer, setBuffer, salary, initialBalance, fixedTotal, annualMonthly, subsTotal, bufferAmt, free }) => (
   <>
     <p className="onb-step-label">6 di 6 · Imprevisti</p>
     <h1 className="onb-question">Quanto vuoi mettere da parte?</h1>
@@ -417,6 +452,11 @@ const BufferStep = ({ buffer, setBuffer, salary, fixedTotal, annualMonthly, subs
       <div className="onb-recap-row">
         <span>Stipendio</span><strong style={{ color: 'var(--accent)' }}>+€{$n(salary)}</strong>
       </div>
+      {initialBalance > 0 && (
+        <div className="onb-recap-row">
+          <span>Saldo iniziale</span><strong style={{ color: 'var(--info)' }}>+€{$n(initialBalance)}</strong>
+        </div>
+      )}
       <div className="onb-recap-row">
         <span>Spese fisse</span><strong>−€{$n(fixedTotal)}</strong>
       </div>

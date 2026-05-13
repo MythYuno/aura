@@ -8,6 +8,15 @@ export const $d = (n) => {
   return n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+export const moneyText = (n, decimals = 0) => {
+  return decimals === 0 ? $n(n) : $d(n);
+};
+
+export const maskedMoney = (n, { privacy = false, decimals = 0 } = {}) => {
+  if (privacy) return '***';
+  return moneyText(n, decimals);
+};
+
 export const parseNum = (v) => {
   if (typeof v === 'number') return isNaN(v) ? 0 : v;
   if (!v) return 0;

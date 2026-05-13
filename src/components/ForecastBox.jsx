@@ -1,6 +1,5 @@
 import { IcClock } from '../lib/icons.jsx';
-import { $n, cn } from '../lib/format.js';
-import { NumberTicker } from './ui/NumberTicker.jsx';
+import { maskedMoney } from '../lib/format.js';
 
 /**
  * "Previsione fine mese" card.
@@ -22,19 +21,17 @@ export const ForecastBox = ({ projectedSpend, projectedRemain, privacy, freeBudg
       <div className="row">
         <div className="col">
           <div className="col-lbl">Spenderai</div>
-          <div className={cn('col-val fg tnum', privacy && 'privacy-blur')}>
-            <span className="currency">€</span>
-            <NumberTicker value={spend} decimals={0} />
+          <div className="col-val fg tnum">
+            <span className="currency">€</span>{maskedMoney(spend, { privacy })}
           </div>
         </div>
         <div className="col">
           <div className="col-lbl">{remainLbl}</div>
           <div
-            className={cn('col-val tnum', privacy && 'privacy-blur')}
+            className="col-val tnum"
             style={{ color: tone === 'warn' ? 'var(--warn)' : 'var(--accent)' }}
           >
-            <span className="currency">€</span>
-            <NumberTicker value={remainVal} decimals={0} />
+            <span className="currency">€</span>{maskedMoney(remainVal, { privacy })}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ import { useTour } from '../hooks/useTour.js';
 import { monthlyForecast } from '../lib/forecast.js';
 import { suggestCategory } from '../lib/intelligence.js';
 import { NumberTicker } from '../components/ui/NumberTicker.jsx';
-import { cn } from '../lib/format.js';
+import { maskedMoney } from '../lib/format.js';
 
 /**
  * Today: hero + month bar chart + forecast + quick-add + weekly digest (Sundays).
@@ -68,12 +68,12 @@ export const Today = ({ store, onSettingsTap }) => {
       {/* Hero */}
       <div className="breath-hero" data-tut="hero">
         <div className="lbl">Oggi puoi spendere</div>
-        <div className={cn('num tnum', privacy && 'privacy-blur')}>
+        <div className="num tnum">
           <span className="currency">€</span>
-          <NumberTicker value={Math.max(0, dailyBudget)} decimals={2} />
+          {privacy ? '***' : <NumberTicker value={Math.max(0, dailyBudget)} decimals={2} />}
         </div>
         <p className="one-liner" data-tut="sub">
-          Ti restano <strong className={privacy ? 'privacy-blur' : ''}>€<NumberTicker value={Math.max(0, remaining)} decimals={0} /></strong>
+          Ti restano <strong>€{maskedMoney(Math.max(0, remaining), { privacy })}</strong>
           {' '}per i prossimi <strong>{daysLeft}</strong> {daysLeft === 1 ? 'giorno' : 'giorni'}.
         </p>
       </div>
@@ -85,6 +85,7 @@ export const Today = ({ store, onSettingsTap }) => {
           periodStart={periodStart}
           periodEnd={periodEnd}
           dayOfPeriod={dayOfPeriod}
+          privacy={privacy}
           onDayTap={(ts) => setDayTs(ts)}
         />
       </div>
@@ -119,6 +120,7 @@ export const Today = ({ store, onSettingsTap }) => {
         dayTs={dayTs}
         allTxs={txs}
         cats={cats}
+        privacy={privacy}
         onClose={() => setDayTs(null)}
       />
       <SpliceModal
