@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <!-- WCAG 2.1 SC 1.4.4 (Resize Text): permettiamo zoom utente fino a 5x per
+       l'accessibilità degli ipovedenti. interactive-widget=resizes-content
+       evita il bug della tastiera virtuale che sposta il viewport iOS. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, interactive-widget=resizes-content" />
+
+  <!-- PWA / iOS Web App -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AURA" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- Theme color: ardesia profonda dark, grigio-azzurro chiaro light -->
+  <meta name="theme-color" content="#0E1117" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#F5F7FA" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+
+  <!-- Content-Security-Policy: difesa in profondità contro XSS, anche se
+       React già escapa il rendering. 'unsafe-inline' su style serve a Tailwind
+       compilato; img-src include data: per le icone inline svg.
+       Connetti solo a Google Fonts (font assets) — nessun backend AURA esiste. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: blob:;
+    connect-src 'self';
+    manifest-src 'self';
+    base-uri 'self';
+    form-action 'none';
+    frame-ancestors 'none';
+  " />
+
+  <!-- SEO + social -->
+  <meta name="description" content="AURA — Tracker finanze personali. Privacy-first, offline-first, zero cloud." />
+  <meta property="og:title" content="AURA — Finanze personali" />
+  <meta property="og:description" content="Tracker finanze personali. Zero cloud, totale privacy." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./icon.svg" />
+  <meta name="twitter:card" content="summary" />
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <!-- iOS richiede un PNG per l'icona home (ignora l'SVG). ?v= forza iOS a
+       riscaricare l'icona, scavalcando la sua cache testarda. -->
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6" />
+
+  <!-- Font: preconnect + display=swap per non bloccare il primo paint.
+       Bricolage Grotesque (variable, display) per i numeri grandi e i titoli.
+       Geist + Geist Mono per body e cifre tabular. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Geist:wght@100..900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Inline FOUC guard: paint correct bg/color even before CSS arrives -->
+  <style>
+    html, body { background: #0E1117; color: rgba(244,246,250,0.96); margin: 0; }
+    @media (prefers-color-scheme: light) {
+      html, body { background: #F5F7FA; color: rgba(20,26,34,0.96); }
+    }
+  </style>
+
+  <title>AURA — Finanze personali</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
