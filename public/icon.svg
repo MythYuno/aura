@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- AURA v0.16 "Prugna": prugna pieno + scintilla bianca, scintilla piccola albicocca.
+       Stessa figura di sempre, nei colori della nuova identità. -->
+  <rect width="512" height="512" rx="112" fill="#3B2A55"/>
+  <path fill="#FFFFFF" d="M224 128 C251 249 251 249 372 276 C251 303 251 303 224 424 C197 303 197 303 76 276 C197 249 197 249 224 128 Z"/>
+  <path fill="#E8925A" d="M388 92 C398 140 398 140 446 150 C398 160 398 160 388 208 C378 160 378 160 330 150 C378 140 378 140 388 92 Z"/>
+</svg>

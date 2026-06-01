@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+*.local
+.env
+.env.*
+.vite
+
+# personal / local-only files (notes, deploy guides, design previews)
+_local/
+.claude/

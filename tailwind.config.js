@@ -1,0 +1,51 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: ['class', '[data-mode="dark"]'],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'monospace'],
+      },
+      colors: {
+        bg: 'var(--bg)',
+        glass: 'var(--glass)',
+        'glass-2': 'var(--glass2)',
+        'glass-bd': 'var(--glass-bd)',
+        'glass-bd-2': 'var(--glass-bd-2)',
+        fg: 'var(--fg)',
+        'fg-2': 'var(--fg-2)',
+        'fg-3': 'var(--fg-3)',
+        'fg-4': 'var(--fg-4)',
+        'fg-5': 'var(--fg-5)',
+        accent: 'var(--accent)',
+        'accent-dim': 'var(--accent-dim)',
+        'accent-2': 'var(--accent-2)',
+        ok: 'var(--ok)',
+        info: 'var(--info)',
+        pink: 'var(--pink)',
+        gold: 'var(--gold)',
+        blue: 'var(--blue)',
+        red: 'var(--red)',
+        purple: 'var(--purple)',
+        orange: 'var(--orange)',
+        teal: 'var(--teal)',
+        warn: 'var(--warn)',
+      },
+      borderRadius: {
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '20px',
+        '2xl': '24px',
+        '3xl': '28px',
+      },
+      transitionTimingFunction: {
+        'out-soft': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'out-back': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+    },
+  },
+  plugins: [],
+};
