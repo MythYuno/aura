@@ -29,6 +29,15 @@ export function toDay(value) {
   return new Date(year, month - 1, day);
 }
 
+/** La data in `YYYY-MM-DD` locale: è così che va salvata, mai con toISOString. */
+export function toYmd(value) {
+  const d = toDay(value);
+  if (!d) return null;
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 export function inCycle(value, cycle) {
   const d = toDay(value);
   if (!d) return false;

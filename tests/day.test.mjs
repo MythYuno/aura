@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toDay, inCycle, fixedDateIn } from '../src/cycle/day.js';
+import { toDay, toYmd, inCycle, fixedDateIn } from '../src/cycle/day.js';
 import { cycleFor } from '../src/cycle/boundaries.js';
 
 const at = (y, m, d) => new Date(y, m - 1, d);
@@ -26,6 +26,17 @@ test('toDay restituisce null su valore non valido', () => {
   for (const v of [null, undefined, '', 'ieri', '2026-13-45', {}]) {
     assert.equal(toDay(v), null, `fallito su ${JSON.stringify(v)}`);
   }
+});
+
+test('toYmd scrive la data locale, senza slittamenti di fuso', () => {
+  assert.equal(toYmd(new Date(2026, 10, 7, 23, 30)), '2026-11-07');
+  assert.equal(toYmd('2026-01-05'), '2026-01-05');
+  assert.equal(toYmd('mai'), null);
+});
+
+test('toDay e toYmd fanno il giro completo', () => {
+  assert.equal(toYmd(toDay('2026-02-29')), null); // il 2026 non è bisestile
+  assert.equal(toYmd(toDay('2028-02-29')), '2028-02-29');
 });
 
 test('inCycle include il primo e l\'ultimo giorno', () => {
