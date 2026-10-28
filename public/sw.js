@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-v19-prugna';
+const CACHE_NAME = 'aura-v2-sistema';
 const STATIC = ['./manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {

@@ -4,7 +4,7 @@ Un'app per sapere **quanto puoi spendere oggi**, e se puoi permetterti quella co
 
 L'idea è che le due domande sono la stessa. Tutte le app che avevo provato chiedevano troppo — registrazione, sincronizzazione su 14 dispositivi, accesso alla banca, notifiche motivazionali, abbonamento "Pro" — e in cambio dicevano quanto avevi speso, cosa che sapevo già. Qui davanti c'è un numero, e accanto una risposta: *sì*, *sì ma stringi*, *no*.
 
-I dati stanno nel browser di chi la usa (`localStorage`), niente backend, niente account, niente analytics. Si installa come app sul telefono (è una PWA), funziona offline, e quando vuoi esporti un backup `.json` e ti porti via tutto.
+I dati stanno nel browser di chi la usa (`localStorage`), niente backend, niente account, niente analytics. Si installa come app sul telefono (è una PWA) e funziona offline.
 
 > **Stato: 2.0 alpha, in ricostruzione.** La v0.8 è stata buttata via e rifatta da zero.
 > Il progetto è descritto in [`docs/superpowers/specs/`](docs/superpowers/specs/) e il lavoro
@@ -18,7 +18,7 @@ I dati stanno nel browser di chi la usa (`localStorage`), niente backend, niente
 - **Posso permettermelo?** — digiti un importo e sai *prima* di spendere se sfori, e di quanto. Se poi spendi, la stessa schermata registra
 - **Il ciclo** — dal 16 al 15: stipendio, spese fisse, accantonamenti per le annuali, obiettivo di risparmio, e dove stanno andando i soldi per categoria
 - **Riconciliazione** — a fine ciclo digiti il totale uscite della banca e sai quanto della tua mappa è vera: *"hai registrato l'87% di quello che è uscito"*
-- **Backup completo** in JSON
+- **Backup in JSON** — le funzioni di export e import ci sono, ma non hanno ancora una schermata da cui richiamarle: è il primo lavoro della lista
 
 ## Cosa **non** fa
 
@@ -51,7 +51,7 @@ Da Settings del repo → Pages → Source = **GitHub Actions**.
 
 ## Privacy
 
-Tutto sta nel `localStorage` del browser. Nessuna richiesta di rete viene fatta a un server di AURA, perché un server di AURA non esiste. Svuotare i dati del sito cancella tutto: il backup JSON è l'unica difesa.
+Tutto sta nel `localStorage` del browser. Nessuna richiesta di rete viene fatta a un server di AURA, perché un server di AURA non esiste. Svuotare i dati del sito cancella tutto, e finché il backup non è raggiungibile dall'interfaccia non c'è modo di portarseli via: tienilo presente.
 
 ## Licenza
 

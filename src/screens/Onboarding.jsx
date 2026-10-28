@@ -202,8 +202,8 @@ export function Onboarding({ onDone }) {
               <p className="text-[15px] leading-5" style={{ color: 'var(--label-2)' }}>
                 Tutto resta in questo browser. Nessun account, nessun server, nessuno che li legga —
                 nemmeno io. Il rovescio è che <strong style={{ color: 'var(--label)' }}>svuotare i dati
-                del sito li cancella</strong>: il backup in JSON è l'unica difesa, e lo trovi nelle
-                impostazioni.
+                del sito li cancella</strong>, e per adesso non c'è ancora una schermata da cui
+                esportarli: non cancellare i dati di questo sito.
               </p>
             </div>
           </Group>
