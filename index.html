@@ -14,8 +14,8 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="format-detection" content="telephone=no" />
 
-  <!-- Theme color (v0.15 "Banca"): applyTheme lo riscrive a runtime seguendo
-       la modalità effettiva; questi sono i valori del primo paint. -->
+  <!-- Theme color: le superfici di sistema, per il primo paint e per la
+       cornice della PWA. La modalita segue il telefono. -->
   <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
   <meta name="color-scheme" content="light dark" />
@@ -23,12 +23,12 @@
   <!-- Content-Security-Policy: difesa in profondità contro XSS, anche se
        React già escapa il rendering. 'unsafe-inline' su style serve a Tailwind
        compilato; img-src include data: per le icone inline svg.
-       Connetti solo a Google Fonts (font assets) — nessun backend AURA esiste. -->
+       Nessuna origine esterna: nessun font importato, nessun backend. -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com;
+    style-src 'self' 'unsafe-inline';
+    font-src 'self';
     img-src 'self' data: blob:;
     connect-src 'self';
     manifest-src 'self';
@@ -51,16 +51,11 @@
        riscaricare l'icona, scavalcando la sua cache testarda. -->
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=9" />
 
-  <!-- Font: preconnect + display=swap per non bloccare il primo paint.
-       v0.15 "Banca": una sola famiglia, Geist (+ Mono per le cifre tabellari).
-       Il serif Fraunces è stato rimosso con la nuova identità. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Nessun font importato: i tipi sono quelli di sistema (-apple-system),
+       quindi su iPhone e SF Pro senza nessuna richiesta di rete. -->
 
-  <!-- Inline FOUC guard (v0.15): la modalità segue il telefono, quindi anche
-       il primo pixel prima del JS. applyTheme ridipinge subito dopo il boot
-       (e rispetta la scelta esplicita di chi ha fissato chiaro o scuro). -->
+  <!-- Guardia anti-lampo: la modalita segue il telefono, quindi anche il
+       primo pixel prima che il JS parta. -->
   <style>
     html, body { background: #F2F2F7; color: rgba(0,0,0,0.96); margin: 0; }
     @media (prefers-color-scheme: dark) {

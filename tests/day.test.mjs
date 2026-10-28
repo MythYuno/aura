@@ -58,6 +58,40 @@ test('fixedDateIn trova il giorno del mese dentro il ciclo', () => {
   assert.equal(ymd(fixedDateIn(16, c)), '2026-10-16');
 });
 
+test('una fissa al 31 cade l\'ultimo giorno nei mesi corti', () => {
+  // Una banca che addebita "il 31" ad aprile addebita il 30. Senza il taglio,
+  // nel ciclo 16 aprile - 15 maggio l'addebito non trovava ne il 31 aprile
+  // (non esiste) ne il 31 maggio (fuori ciclo): la spesa fissa SPARIVA e il
+  // disponibile del giorno raddoppiava senza avviso.
+  const aprile = cycleFor(at(2026, 4, 20), 16); // 16 apr - 15 mag
+  assert.equal(ymd(fixedDateIn(31, aprile)), '2026-04-30');
+
+  const giugno = cycleFor(at(2026, 6, 20), 16); // 16 giu - 15 lug
+  assert.equal(ymd(fixedDateIn(31, giugno)), '2026-06-30');
+
+  const febbraio = cycleFor(at(2026, 2, 20), 16); // 16 feb - 15 mar
+  assert.equal(ymd(fixedDateIn(31, febbraio)), '2026-02-28');
+  assert.equal(ymd(fixedDateIn(30, febbraio)), '2026-02-28');
+
+  const bisestile = cycleFor(at(2028, 2, 20), 16);
+  assert.equal(ymd(fixedDateIn(31, bisestile)), '2028-02-29');
+});
+
+test('una fissa al 31 nei mesi lunghi resta il 31', () => {
+  const ottobre = cycleFor(at(2026, 10, 20), 16); // 16 ott - 15 nov
+  assert.equal(ymd(fixedDateIn(31, ottobre)), '2026-10-31');
+});
+
+test('ogni giorno del mese da 1 a 31 cade esattamente una volta per ciclo', () => {
+  // La proprieta che il taglio deve garantire: nessuna fissa puo sparire.
+  for (let m = 1; m <= 12; m += 1) {
+    const c = cycleFor(at(2026, m, 20), 16);
+    for (let d = 1; d <= 31; d += 1) {
+      assert.ok(fixedDateIn(d, c), `giorno ${d} perso nel ciclo di ${m}`);
+    }
+  }
+});
+
 test('un giorno 28 non cade nel ciclo 31 gennaio - 27 febbraio', () => {
   // payDay 31: gennaio paga il 31, febbraio il 28, quindi il ciclo si chiude
   // il 27 e il giorno 28 non ci entra mai.

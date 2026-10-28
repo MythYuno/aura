@@ -53,6 +53,21 @@ test('emptyState ha tutti i campi che computeBudget si aspetta', () => {
   assert.deepEqual(s.movements, []);
   assert.equal(s.onboarded, false);
   assert.ok(s.categories.length > 0);
+  // la copertura di ogni ciclo riconciliato, altrimenti il numero piu
+  // importante dell'app sparisce appena si chiude il foglio
+  assert.deepEqual(s.reconciliations, {});
+});
+
+test('load conserva le riconciliazioni e ne completa l\'assenza', () => {
+  const con = JSON.stringify({
+    version: STATE_VERSION,
+    movements: [],
+    reconciliations: { '2026-11-15': { bankTotalCents: 184000, coverage: 0.875 } },
+  });
+  assert.equal(load(memory({ [STORAGE_KEY]: con })).reconciliations['2026-11-15'].coverage, 0.875);
+
+  const senza = JSON.stringify({ version: STATE_VERSION, movements: [] });
+  assert.deepEqual(load(memory({ [STORAGE_KEY]: senza })).reconciliations, {});
 });
 
 test('emptyState non condivide gli array fra due chiamate', () => {

@@ -13,6 +13,7 @@
 import { useMemo } from 'react';
 import { computeBudget } from '../cycle/budget.js';
 import { fixedDateIn, toDay, toYmd } from '../cycle/day.js';
+import { UNTRACKED_TAG } from '../cycle/reconcile.js';
 import { Group, Cell } from '../ui/List.jsx';
 import { Money } from '../ui/Money.jsx';
 import { CategoryIcon } from '../ui/CategoryIcon.jsx';
@@ -23,11 +24,15 @@ const BAR_COLOR = { inPari: 'var(--ok)', stringi: 'var(--warn)', sfori: 'var(--b
 const fmtDayMonth = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long' });
 const fmtWeekday = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
 
-export function Today({ state, today = new Date() }) {
+export function Today({ state, today }) {
   const budget = useMemo(() => computeBudget({ ...state, today }), [state, today]);
   const todayKey = toYmd(today);
 
-  const spentToday = state.movements.filter((m) => m.date === todayKey);
+  // La voce non tracciata è datata a fine ciclo: nell'ultimo giorno finirebbe
+  // sotto "Oggi" come se l'avessi spesa stamattina.
+  const spentToday = state.movements.filter(
+    (m) => m.date === todayKey && m.tag !== UNTRACKED_TAG
+  );
 
   const upcoming = state.fixed
     .map((f) => ({ ...f, when: fixedDateIn(f.dayOfMonth, budget.cycle) }))
@@ -35,6 +40,7 @@ export function Today({ state, today = new Date() }) {
     .sort((a, b) => a.when - b.when);
 
   const barWidth = budget.free > 0 ? Math.max(0, Math.min(1, budget.left / budget.free)) : 0;
+  const over = budget.left < 0;
 
   return (
     <div className="pb-6">
@@ -50,7 +56,22 @@ export function Today({ state, today = new Date() }) {
             {budget.daysLeft === 1
               ? `ultimo giorno del ciclo · ${fmtDayMonth.format(budget.cycle.end)}`
               : `restano ${budget.daysLeft} giorni al ${fmtDayMonth.format(budget.cycle.end)}`}
-            {budget.left > 0 && <> · <Money cents={budget.left} size="foot" /> liberi</>}
+            {budget.left > 0 && (
+              <>
+                {' · '}
+                <Money cents={budget.left} size="foot" /> liberi
+              </>
+            )}
+            {/* Lo sforamento va detto, non sottinteso: la cifra sopra è zero
+                proprio quando il numero che serve è di quanto sei sotto. */}
+            {over && (
+              <>
+                {' · sforato di '}
+                <strong style={{ color: 'var(--bad)' }}>
+                  <Money cents={-budget.left} size="foot" />
+                </strong>
+              </>
+            )}
           </div>
           <div className="mt-[11px] h-1 overflow-hidden rounded-sm" style={{ background: 'var(--label-3)' }}>
             <div
@@ -79,9 +100,9 @@ export function Today({ state, today = new Date() }) {
 
       {upcoming.length > 0 && (
         <Group header="IN ARRIVO" footer="Già sottratte dal disponibile: sono qui perché tu le veda.">
-          {upcoming.map((f) => (
+          {upcoming.map((f, i) => (
             <Cell
-              key={`${f.label}-${f.dayOfMonth}`}
+              key={`${f.label}-${f.dayOfMonth}-${i}`}
               title={f.label}
               subtitle={fmtDayMonth.format(f.when)}
               value={<Money cents={f.amountCents} />}

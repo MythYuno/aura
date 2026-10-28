@@ -56,9 +56,14 @@ export function fixedDateIn(dayOfMonth, cycle) {
   const end = toDay(cycle.end);
 
   for (const monthOffset of [0, 1]) {
-    const d = new Date(start.getFullYear(), start.getMonth() + monthOffset, dayOfMonth);
-    // new Date(y, m, 31) scivola al mese dopo nei mesi corti: quello non vale.
-    if (d.getDate() !== dayOfMonth) continue;
+    const year = start.getFullYear();
+    const month = start.getMonth() + monthOffset;
+    // Il giorno si taglia all'ultimo del mese, come fa la banca: chi addebita
+    // "il 31" ad aprile addebita il 30. Senza il taglio l'addebito non trovava
+    // ne il 31 aprile (non esiste) ne il 31 maggio (fuori ciclo), e la spesa
+    // fissa spariva per interi cicli gonfiando il disponibile del giorno.
+    const lastOfMonth = new Date(year, month + 1, 0).getDate();
+    const d = new Date(year, month, Math.min(dayOfMonth, lastOfMonth));
     if (d >= start && d <= end) return d;
   }
   return null;

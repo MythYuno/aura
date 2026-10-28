@@ -53,21 +53,31 @@ export function useStore() {
   }, []);
 
   /**
-   * Riconcilia il ciclo di `today`. La voce non tracciata esistente per quel
-   * ciclo viene **sostituita**, non aggiunta: riconciliare due volte lo stesso
-   * ciclo conferma il buco, non lo raddoppia.
+   * Riconcilia il ciclo che gli viene passato — non quello di oggi.
+   *
+   * Prima lo ricalcolava da `new Date()`: il giorno dello stipendio, che è il
+   * momento in cui la spec dice di riconciliare, il totale del ciclo appena
+   * chiuso finiva addosso al ciclo nuovo e vuoto, che nasceva con "hai finito
+   * il budget" e nessun modo di tornare indietro.
+   *
+   * La voce non tracciata esistente per quel ciclo viene **sostituita**, non
+   * aggiunta: riconciliare due volte lo stesso ciclo conferma il buco, non lo
+   * raddoppia. La copertura resta registrata, così non vive solo nel foglio.
    */
-  const applyReconcile = useCallback((bankTotalCents, today = new Date()) => {
+  const applyReconcile = useCallback((bankTotalCents, cycle, committedCents = 0) => {
     setState((s) => {
-      const cycle = cycleFor(today, s.payDay);
       const endDay = toYmd(cycle.end);
-      const { untracked } = reconcile(bankTotalCents, s.movements, cycle);
-      const others = s.movements.filter(
-        (m) => !(m.tag === UNTRACKED_TAG && m.date === endDay)
+      const { untracked, coverage } = reconcile(
+        bankTotalCents,
+        s.movements,
+        cycle,
+        committedCents
       );
+      const others = s.movements.filter((m) => !(m.tag === UNTRACKED_TAG && m.date === endDay));
       return {
         ...s,
         movements: untracked ? [...others, { id: newId(), ...untracked }] : others,
+        reconciliations: { ...s.reconciliations, [endDay]: { bankTotalCents, coverage } },
       };
     });
   }, []);

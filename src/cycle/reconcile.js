@@ -12,16 +12,25 @@ import { inCycle, toYmd } from './day.js';
 export const UNTRACKED_TAG = 'untracked';
 export const UNTRACKED_LABEL = 'Non tracciato';
 
-export function reconcile(bankTotalCents, movements, cycle) {
+/**
+ * `committedCents` sono le uscite del ciclo che NON sono movimenti registrati
+ * ma configurazione: le spese fisse, che `computeBudget` ha già sottratto in
+ * blocco dal libero. Il totale della banca invece le contiene. Senza
+ * dichiararle qui, lo scostamento sarebbe l'affitto, e diventerebbe un
+ * movimento libero che il budget sottrae una seconda volta: un ciclo in pari
+ * si trasformerebbe in "hai finito il budget".
+ */
+export function reconcile(bankTotalCents, movements, cycle, committedCents = 0) {
   // Le voci non tracciate di una riconciliazione precedente restano fuori dal
   // conto: altrimenti riconciliare due volte lo stesso ciclo raddoppierebbe
   // il buco invece di confermarlo.
-  const tracked = movements.reduce(
+  const registered = movements.reduce(
     (sum, m) =>
       m.tag !== UNTRACKED_TAG && inCycle(m.date, cycle) ? sum + (m.amountCents ?? 0) : sum,
     0
   );
 
+  const tracked = registered + committedCents;
   const gap = bankTotalCents - tracked;
 
   // Con la banca a zero non c'è nulla da coprire: la copertura è piena, non

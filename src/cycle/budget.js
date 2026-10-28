@@ -87,6 +87,14 @@ export function computeBudget({
 
   return {
     cycle,
+    // La scomposizione viaggia nel risultato: la schermata Ciclo deve mostrare
+    // righe che tornano col libero, e la riconciliazione ha bisogno dello
+    // stesso `fixedTotal` per non contare due volte le fisse. Ricalcolarla nei
+    // componenti significa due moduli che divergono.
+    extrasTotal,
+    fixedTotal,
+    setAsideTotal,
+    goal,
     free,
     spent,
     left,

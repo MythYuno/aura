@@ -1,24 +1,30 @@
 /**
  * Ciclo: dal 16 al 15, non dal primo del mese.
  *
- * Qui vive la terza domanda, dove sono finiti i soldi, e l'obiettivo di
- * risparmio è **una riga** — non una schermata da 418 righe come nella v0.8.
+ * Qui vive la terza domanda, dove sono finiti i soldi. Nessun numero viene
+ * ricalcolato in questo file: la scomposizione arriva da `computeBudget`,
+ * altrimenti le righe del conto non tornerebbero col libero — ed è esattamente
+ * quello che succedeva quando le fisse venivano sommate qui senza filtrarle
+ * per giorno dentro il ciclo.
  */
 
 import { useMemo, useState } from 'react';
 import { computeBudget, setAsideQuota } from '../cycle/budget.js';
+import { cycleLength } from '../cycle/boundaries.js';
 import { categoryHistoricalStats } from '../cycle/stats.js';
-import { inCycle } from '../cycle/day.js';
+import { inCycle, toYmd } from '../cycle/day.js';
 import { UNTRACKED_TAG } from '../cycle/reconcile.js';
 import { Group, Cell } from '../ui/List.jsx';
 import { Money } from '../ui/Money.jsx';
 import { CategoryIcon } from '../ui/CategoryIcon.jsx';
 import { ScrollTitle } from '../ui/ScrollTitle.jsx';
-import { Sheet } from '../ui/Sheet.jsx';
 import { ReconcileSheet } from './ReconcileSheet.jsx';
+import { SetupSheet } from './SetupSheet.jsx';
+import { MovementsSheet } from './MovementsSheet.jsx';
 
 const fmtDayMonth = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long' });
 const BAR_COLOR = { inPari: 'var(--ok)', stringi: 'var(--warn)', sfori: 'var(--bad)' };
+const pct = (n) => `${Math.round(n * 100)}%`;
 
 const delta = (s) => {
   if (s.isNew) return 'nuova';
@@ -26,9 +32,10 @@ const delta = (s) => {
   return `${s.deltaPct > 0 ? '+' : '−'}${Math.abs(s.deltaPct)}% sul ciclo scorso`;
 };
 
-export function Cycle({ state, onReconcile, today = new Date() }) {
-  const [detail, setDetail] = useState(null);
+export function Cycle({ state, today, onReconcile, onSaveSetup, onRemoveMovement }) {
+  const [editing, setEditing] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [listing, setListing] = useState(null); // { cycle, catId }
 
   const budget = useMemo(() => computeBudget({ ...state, today }), [state, today]);
   const stats = useMemo(
@@ -42,14 +49,11 @@ export function Cycle({ state, onReconcile, today = new Date() }) {
 
   const untracked = state.movements
     .filter((m) => m.tag === UNTRACKED_TAG && inCycle(m.date, budget.cycle))
-    .reduce((sum, m) => sum + m.amountCents, 0);
+    .reduce((sum, m) => sum + (m.amountCents ?? 0), 0);
 
-  const fixedTotal = state.fixed.reduce((sum, f) => sum + f.amountCents, 0);
-  const setAsideTotal = state.setAside.reduce(
-    (sum, s) => sum + setAsideQuota(s, budget.cycle, state.payDay),
-    0
-  );
   const barWidth = budget.free > 0 ? Math.max(0, Math.min(1, budget.left / budget.free)) : 0;
+  const elapsed = cycleLength(budget.cycle) - budget.daysLeft + 1;
+  const verified = state.reconciliations?.[toYmd(budget.cycle.end)];
 
   return (
     <div className="pb-6">
@@ -61,9 +65,13 @@ export function Cycle({ state, onReconcile, today = new Date() }) {
       <Group header="LIBERI">
         <div className="ios-cell relative px-4 pb-4 pt-[14px]">
           <div className="text-[13px] leading-[18px]" style={{ color: 'var(--label-2)' }}>
-            Liberi, dopo fisse e obiettivo
+            {budget.left > 0 ? 'Liberi, dopo fisse e obiettivo' : 'Sforamento del ciclo'}
           </div>
-          <Money cents={budget.left} size="title1" style={{ display: 'block', marginTop: 2 }} />
+          <Money
+            cents={budget.left > 0 ? budget.left : -budget.left}
+            size="title1"
+            style={{ display: 'block', marginTop: 2 }}
+          />
           <div className="mt-[5px] text-[13px] leading-[18px]" style={{ color: 'var(--label-2)' }}>
             su <Money cents={budget.free} size="foot" /> · {budget.daysLeft}{' '}
             {budget.daysLeft === 1 ? 'giorno rimasto' : 'giorni rimasti'}
@@ -74,27 +82,34 @@ export function Cycle({ state, onReconcile, today = new Date() }) {
         </div>
       </Group>
 
-      <Group header="IL CONTO">
+      <Group header="IL CONTO" footer="Tocca una riga per cambiare l'impianto.">
         <Cell
           title="Stipendio"
           subtitle={`il ${state.payDay} di ogni mese`}
           value={<Money cents={state.income} />}
+          chevron
+          onClick={() => setEditing(true)}
         />
         <Cell
           title="Spese fisse"
-          subtitle={state.fixed.length ? `${state.fixed.length} voci` : 'nessuna'}
-          value={<Money cents={-fixedTotal} />}
-          chevron={state.fixed.length > 0}
-          onClick={state.fixed.length ? () => setDetail('fixed') : undefined}
+          subtitle={state.fixed.length ? `${state.fixed.length} voci in questo ciclo` : 'nessuna'}
+          value={<Money cents={-budget.fixedTotal} />}
+          chevron
+          onClick={() => setEditing(true)}
         />
         <Cell
           title="Accantonamenti"
           subtitle={state.setAside.length ? 'quota di questo ciclo' : 'nessuno'}
-          value={<Money cents={-setAsideTotal} />}
-          chevron={state.setAside.length > 0}
-          onClick={state.setAside.length ? () => setDetail('setAside') : undefined}
+          value={<Money cents={-budget.setAsideTotal} />}
+          chevron
+          onClick={() => setEditing(true)}
         />
-        <Cell title="Obiettivo di risparmio" value={<Money cents={-state.goal} />} />
+        <Cell
+          title="Obiettivo di risparmio"
+          value={<Money cents={-budget.goal} />}
+          chevron
+          onClick={() => setEditing(true)}
+        />
       </Group>
 
       <Group header="DOVE STANNO ANDANDO" footer={rows.length ? undefined : 'Niente registrato in questo ciclo.'}>
@@ -105,6 +120,8 @@ export function Cycle({ state, onReconcile, today = new Date() }) {
             title={state.categories.find((c) => c.id === catId)?.label ?? catId}
             subtitle={delta(s)}
             value={<Money cents={s.current} />}
+            chevron
+            onClick={() => setListing({ cycle: budget.cycle, catId })}
           />
         ))}
         {untracked > 0 && (
@@ -117,55 +134,50 @@ export function Cycle({ state, onReconcile, today = new Date() }) {
         {rows.length === 0 && untracked === 0 && <Cell title="Nessuna spesa" />}
       </Group>
 
-      <Group header="VERIFICA" footer="Un solo numero: il totale uscite del conto.">
+      <Group
+        header="VERIFICA"
+        footer={
+          elapsed <= 3
+            ? 'Il ciclo è appena iniziato: è il momento di verificare quello che si è chiuso.'
+            : 'Un solo numero: il totale uscite del conto.'
+        }
+      >
         <Cell
           title="La banca dice"
-          subtitle="tocca per inserire il totale"
-          value={untracked > 0 ? 'verificato' : '—'}
+          subtitle={verified ? `copertura ${pct(verified.coverage)}` : 'tocca per inserire il totale'}
+          value={verified ? <Money cents={verified.bankTotalCents} /> : '—'}
           chevron
           onClick={() => setVerifying(true)}
         />
+        <Cell
+          title="Tutti i movimenti del ciclo"
+          subtitle="dal più grosso"
+          chevron
+          onClick={() => setListing({ cycle: budget.cycle, catId: null })}
+        />
       </Group>
 
-      <Sheet
-        open={detail !== null}
-        onClose={() => setDetail(null)}
-        title={detail === 'fixed' ? 'Spese fisse' : 'Accantonamenti'}
-      >
-        <div className="px-4 pb-4 pt-2">
-          <div className="overflow-hidden rounded-[11px]" style={{ background: 'var(--card)' }}>
-            {(detail === 'fixed' ? state.fixed : state.setAside).map((e, i) => (
-              <Cell
-                key={`${e.label}-${i}`}
-                title={e.label}
-                subtitle={
-                  detail === 'fixed'
-                    ? `il ${e.dayOfMonth} del mese`
-                    : e.dueDate
-                      ? `scade il ${e.dueDate}`
-                      : 'ogni ciclo'
-                }
-                value={
-                  <Money
-                    cents={
-                      detail === 'fixed'
-                        ? e.amountCents
-                        : setAsideQuota(e, budget.cycle, state.payDay)
-                    }
-                  />
-                }
-              />
-            ))}
-          </div>
-        </div>
-      </Sheet>
+      <SetupSheet open={editing} onClose={() => setEditing(false)} state={state} onSave={onSaveSetup} />
 
       <ReconcileSheet
         open={verifying}
         onClose={() => setVerifying(false)}
         state={state}
-        cycle={budget.cycle}
+        today={today}
         onApply={onReconcile}
+        onOpenMovements={(cycle) => {
+          setVerifying(false);
+          setListing({ cycle, catId: null });
+        }}
+      />
+
+      <MovementsSheet
+        open={listing !== null}
+        onClose={() => setListing(null)}
+        state={state}
+        cycle={listing?.cycle ?? budget.cycle}
+        catId={listing?.catId ?? null}
+        onRemove={onRemoveMovement}
       />
     </div>
   );

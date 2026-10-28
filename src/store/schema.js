@@ -21,6 +21,10 @@ export function emptyState() {
     setAside: [],
     goal: 0,
     movements: [],
+    // La copertura di ogni ciclo riconciliato, per data di fine ciclo.
+    // Senza questo il numero piu importante dell'app vive solo mentre il
+    // foglio e aperto.
+    reconciliations: {},
     // copia profonda: due chiamate non devono condividere lo stesso array
     categories: defaultCats.map((c) => ({ ...c })),
     onboarded: false,
@@ -47,6 +51,10 @@ export function normalize(raw) {
     setAside: asArray(raw.setAside),
     goal: asInt(raw.goal, 0),
     movements: asArray(raw.movements),
+    reconciliations:
+      raw.reconciliations && typeof raw.reconciliations === 'object' && !Array.isArray(raw.reconciliations)
+        ? raw.reconciliations
+        : {},
     categories: categories.length ? categories : base.categories,
     onboarded: raw.onboarded === true,
   };

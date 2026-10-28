@@ -1,30 +1,29 @@
 /**
  * Tre passi, poi subito la cifra del giorno.
  *
- * Nessun tour, nessuna schermata esplicativa: con tre destinazioni, se serve
- * un tutorial il design ha fallito. L'unica cosa che l'onboarding deve dire e
- * che nessun'altra parte dell'app dirà è dove stanno i dati — perché svuotare
- * i dati del sito li cancella, e il backup è l'unica difesa.
+ * Nessun tour: con tre destinazioni, se serve un tutorial il design ha
+ * fallito. L'unica cosa che l'onboarding deve dire e che nessun'altra parte
+ * dell'app dirà è dove stanno i dati.
+ *
+ * Tutti gli aggiornamenti di stato passano dalla forma funzionale: letti dalla
+ * chiusura del render, due tocchi ravvicinati su "Aggiungi una voce" ne
+ * aggiungerebbero una sola.
  */
 
 import { useState } from 'react';
 import { parseAmount } from '../cycle/afford.js';
 import { Group, Cell } from '../ui/List.jsx';
 import { formatCents } from '../ui/format.js';
+import {
+  MoneyField,
+  DaySelect,
+  EntryRows,
+  invalidRows,
+  toFixedEntries,
+  toSetAsideEntries,
+} from '../ui/Fields.jsx';
 
-const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
-
-const MoneyField = ({ value, onChange, placeholder = '0,00', label }) => (
-  <input
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    inputMode="decimal"
-    placeholder={placeholder}
-    aria-label={label}
-    className="w-24 bg-transparent text-right text-[17px] tabular-nums outline-none"
-    style={{ color: 'var(--label)' }}
-  />
-);
+const TITLES = ['Quando ti pagano', 'Cosa esce fisso', 'Quanto metti da parte'];
 
 export function Onboarding({ onDone }) {
   const [step, setStep] = useState(0);
@@ -35,162 +34,72 @@ export function Onboarding({ onDone }) {
   const [goalRaw, setGoalRaw] = useState('');
 
   const income = parseAmount(incomeRaw);
+  const brokenFixed = invalidRows(fixed, 'fixed');
+  const brokenSetAside = invalidRows(setAside, 'setAside');
+  const goalBroken = goalRaw.trim() !== '' && !parseAmount(goalRaw);
 
-  const patch = (list, set, i, key, value) =>
-    set(list.map((row, j) => (j === i ? { ...row, [key]: value } : row)));
+  const blocked =
+    (step === 0 && !income) ||
+    (step === 1 && (brokenFixed.length > 0 || brokenSetAside.length > 0)) ||
+    (step === 2 && goalBroken);
 
-  const finish = () => {
+  const finish = () =>
     onDone({
       payDay,
       income: income ?? 0,
-      fixed: fixed
-        .filter((f) => f.label.trim() && parseAmount(f.amountRaw))
-        .map((f) => ({
-          label: f.label.trim(),
-          amountCents: parseAmount(f.amountRaw),
-          dayOfMonth: Number(f.dayOfMonth),
-        })),
-      setAside: setAside
-        .filter((s) => s.label.trim() && parseAmount(s.amountRaw))
-        .map((s) => ({
-          label: s.label.trim(),
-          amountCents: parseAmount(s.amountRaw),
-          dueDate: s.dueDate || undefined,
-        })),
+      fixed: toFixedEntries(fixed),
+      setAside: toSetAsideEntries(setAside),
       goal: parseAmount(goalRaw) ?? 0,
       onboarded: true,
     });
-  };
 
   return (
     <div className="pb-8">
       <header className="px-5 pb-1 pt-6">
-        <p className="text-[13px] uppercase leading-[18px]" style={{ color: 'var(--label-2)', letterSpacing: '0.06em' }}>
+        <p
+          className="text-[13px] uppercase leading-[18px]"
+          style={{ color: 'var(--label-2)', letterSpacing: '0.06em' }}
+        >
           Passo {step + 1} di 3
         </p>
         <h1 className="text-[34px] font-bold leading-[41px]" style={{ letterSpacing: '-0.026em' }}>
-          {step === 0 && 'Quando ti pagano'}
-          {step === 1 && 'Cosa esce fisso'}
-          {step === 2 && 'Quanto metti da parte'}
+          {TITLES[step]}
         </h1>
       </header>
 
       {step === 0 && (
-        <>
-          <Group
-            header="STIPENDIO"
-            footer="Il ciclo di AURA parte dal giorno in cui ti pagano, non dal primo del mese."
-          >
-            <Cell
-              title="Giorno del mese"
-              value={
-                <select
-                  value={payDay}
-                  onChange={(e) => setPayDay(Number(e.target.value))}
-                  aria-label="Giorno dello stipendio"
-                  className="bg-transparent text-right text-[17px] outline-none"
-                  style={{ color: 'var(--label)' }}
-                >
-                  {DAYS.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              }
-            />
-            <Cell
-              title="Netto in busta"
-              value={<MoneyField value={incomeRaw} onChange={setIncomeRaw} label="Stipendio netto" />}
-            />
-          </Group>
-          {incomeRaw && !income && (
-            <p className="px-9 pt-2 text-[13px]" style={{ color: 'var(--bad)' }}>
-              Non riesco a leggere questo importo.
-            </p>
-          )}
-        </>
+        <Group
+          header="STIPENDIO"
+          footer="Il ciclo di AURA parte dal giorno in cui ti pagano, non dal primo del mese."
+        >
+          <Cell
+            title="Giorno del mese"
+            value={<DaySelect value={payDay} onChange={setPayDay} label="Giorno dello stipendio" />}
+          />
+          <Cell
+            title="Netto in busta"
+            value={<MoneyField value={incomeRaw} onChange={setIncomeRaw} label="Stipendio netto" />}
+          />
+        </Group>
       )}
 
       {step === 1 && (
         <>
           <Group header="OGNI MESE" footer="Affitto, bollette, abbonamenti: quello che esce da solo.">
-            {fixed.map((f, i) => (
-              <div key={i} className="ios-cell relative flex items-center gap-2 px-4 py-[11px]">
-                <input
-                  value={f.label}
-                  onChange={(e) => patch(fixed, setFixed, i, 'label', e.target.value)}
-                  placeholder="Affitto"
-                  aria-label={`Nome della spesa fissa ${i + 1}`}
-                  className="flex-1 bg-transparent text-[17px] outline-none"
-                  style={{ color: 'var(--label)' }}
-                />
-                <select
-                  value={f.dayOfMonth}
-                  onChange={(e) => patch(fixed, setFixed, i, 'dayOfMonth', e.target.value)}
-                  aria-label={`Giorno della spesa fissa ${i + 1}`}
-                  className="bg-transparent text-[13px] outline-none"
-                  style={{ color: 'var(--label-2)' }}
-                >
-                  {DAYS.map((d) => (
-                    <option key={d} value={d}>
-                      il {d}
-                    </option>
-                  ))}
-                </select>
-                <MoneyField
-                  value={f.amountRaw}
-                  onChange={(v) => patch(fixed, setFixed, i, 'amountRaw', v)}
-                  label={`Importo della spesa fissa ${i + 1}`}
-                />
-              </div>
-            ))}
-            <Cell
-              title="Aggiungi una voce"
-              onClick={() => setFixed([...fixed, { label: '', amountRaw: '', dayOfMonth: 1 }])}
-            />
+            <EntryRows rows={fixed} setRows={setFixed} kind="fixed" />
           </Group>
-
           <Group
             header="UNA VOLTA L'ANNO"
-            footer="Bollo, assicurazione: AURA ne mette da parte una quota a ogni ciclo, così alla scadenza i soldi ci sono."
+            footer="Bollo, assicurazione: AURA ne mette da parte una quota a ogni ciclo. La scadenza serve, è su quella che si divide."
           >
-            {setAside.map((s, i) => (
-              <div key={i} className="ios-cell relative flex items-center gap-2 px-4 py-[11px]">
-                <input
-                  value={s.label}
-                  onChange={(e) => patch(setAside, setSetAside, i, 'label', e.target.value)}
-                  placeholder="Assicurazione"
-                  aria-label={`Nome dell'accantonamento ${i + 1}`}
-                  className="flex-1 bg-transparent text-[17px] outline-none"
-                  style={{ color: 'var(--label)' }}
-                />
-                <input
-                  type="date"
-                  value={s.dueDate ?? ''}
-                  onChange={(e) => patch(setAside, setSetAside, i, 'dueDate', e.target.value)}
-                  aria-label={`Scadenza dell'accantonamento ${i + 1}`}
-                  className="bg-transparent text-[13px] outline-none"
-                  style={{ color: 'var(--label-2)' }}
-                />
-                <MoneyField
-                  value={s.amountRaw}
-                  onChange={(v) => patch(setAside, setSetAside, i, 'amountRaw', v)}
-                  label={`Importo dell'accantonamento ${i + 1}`}
-                />
-              </div>
-            ))}
-            <Cell
-              title="Aggiungi una voce"
-              onClick={() => setSetAside([...setAside, { label: '', amountRaw: '', dueDate: '' }])}
-            />
+            <EntryRows rows={setAside} setRows={setSetAside} kind="setAside" />
           </Group>
         </>
       )}
 
       {step === 2 && (
         <>
-          <Group header="RISPARMIO" footer="Per ciclo. Anche zero: si cambia quando vuoi.">
+          <Group header="RISPARMIO" footer="Per ciclo. Anche zero: si cambia quando vuoi, dalla schermata Ciclo.">
             <Cell
               title="Da parte ogni ciclo"
               value={<MoneyField value={goalRaw} onChange={setGoalRaw} label="Obiettivo di risparmio" />}
@@ -201,9 +110,10 @@ export function Onboarding({ onDone }) {
             <div className="ios-cell relative px-4 py-3">
               <p className="text-[15px] leading-5" style={{ color: 'var(--label-2)' }}>
                 Tutto resta in questo browser. Nessun account, nessun server, nessuno che li legga —
-                nemmeno io. Il rovescio è che <strong style={{ color: 'var(--label)' }}>svuotare i dati
-                del sito li cancella</strong>, e per adesso non c'è ancora una schermata da cui
-                esportarli: non cancellare i dati di questo sito.
+                nemmeno io. Il rovescio è che{' '}
+                <strong style={{ color: 'var(--label)' }}>svuotare i dati del sito li cancella</strong>,
+                e per adesso non c'è ancora una schermata da cui esportarli: non cancellare i dati di
+                questo sito.
               </p>
             </div>
           </Group>
@@ -217,11 +127,20 @@ export function Onboarding({ onDone }) {
         </>
       )}
 
+      {blocked && (
+        <p className="px-9 pt-3 text-[13px] leading-[18px]" style={{ color: 'var(--bad)' }}>
+          {step === 0 && "Non riesco a leggere questo importo: scrivilo come 1.800,00 oppure 1800."}
+          {step === 1 &&
+            'Qualche voce è incompleta: serve un nome, un importo leggibile e, per le annuali, la scadenza. Togli la riga se non ti serve.'}
+          {step === 2 && "Non riesco a leggere questo importo."}
+        </p>
+      )}
+
       <div className="flex gap-3 px-4 pt-6">
         {step > 0 && (
           <button
             type="button"
-            onClick={() => setStep(step - 1)}
+            onClick={() => setStep((s) => s - 1)}
             className="flex h-[50px] flex-1 items-center justify-center text-[17px] font-semibold"
             style={{ borderRadius: 13, background: 'rgba(120,120,128,0.18)', color: 'var(--label)' }}
           >
@@ -230,13 +149,13 @@ export function Onboarding({ onDone }) {
         )}
         <button
           type="button"
-          disabled={step === 0 && !income}
-          onClick={() => (step === 2 ? finish() : setStep(step + 1))}
+          disabled={blocked}
+          onClick={() => (step === 2 ? finish() : setStep((s) => s + 1))}
           className="flex h-[50px] flex-[2] items-center justify-center text-[17px] font-semibold"
           style={{
             borderRadius: 13,
-            background: step === 0 && !income ? 'rgba(120,120,128,0.18)' : 'var(--accent)',
-            color: step === 0 && !income ? 'var(--label-3)' : 'var(--accent-on)',
+            background: blocked ? 'rgba(120,120,128,0.18)' : 'var(--accent)',
+            color: blocked ? 'var(--label-3)' : 'var(--accent-on)',
             letterSpacing: '-0.022em',
           }}
         >

@@ -104,6 +104,42 @@ test('residuo negativo è sfori con perDay 0', () => {
   assert.equal(b.state, 'sfori');
 });
 
+test('il risultato porta la scomposizione, così nessuno la ricalcola a modo suo', () => {
+  // La schermata Ciclo sommava `fixed` per conto proprio, senza filtrare per
+  // giorno dentro il ciclo: le righe del conto non tornavano col libero. E la
+  // riconciliazione ha bisogno dello stesso numero per non contare due volte
+  // le fisse. Una sola verita, calcolata qui.
+  const b = computeBudget({
+    ...BASE,
+    extras: [{ amountCents: 5000, date: '2026-11-02' }],
+    fixed: [
+      { amountCents: 94000, dayOfMonth: 1 },
+      { amountCents: 2000, dayOfMonth: 20 },
+    ],
+    setAside: [{ amountCents: 24000, dueDate: '2026-11-10' }],
+    goal: 10000,
+    today: at(2026, 11, 7),
+  });
+  assert.equal(b.extrasTotal, 5000);
+  assert.equal(b.fixedTotal, 96000);
+  assert.equal(b.setAsideTotal, 24000);
+  assert.equal(b.goal, 10000);
+  // il libero è esattamente la somma algebrica della scomposizione
+  assert.equal(b.free, 180000 + 5000 - 96000 - 24000 - 10000);
+});
+
+test('la scomposizione esclude le fisse il cui giorno non cade nel ciclo', () => {
+  // ciclo 31 gennaio - 27 febbraio: il giorno 28 non ci entra mai
+  const b = computeBudget({
+    ...BASE,
+    payDay: 31,
+    fixed: [{ amountCents: 50000, dayOfMonth: 28 }],
+    today: at(2026, 2, 10),
+  });
+  assert.equal(b.fixedTotal, 0);
+  assert.equal(b.free, 180000);
+});
+
 test('soglie di stato', () => {
   assert.equal(stateFor(0.81, 1000), 'inPari');
   assert.equal(stateFor(0.8, 1000), 'inPari'); // inclusiva

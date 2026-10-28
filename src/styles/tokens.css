@@ -9,6 +9,12 @@
  * usa per i fondi raggruppati e per le carte. È qui che si gioca il "sembra
  * nativa", più che nell'accento. L'accento è grafite, senza tinta, così verde,
  * ambra e rosso restano leggibili come responso e non come decorazione.
+ *
+ * L'ordine dei blocchi conta. Chiaro, poi contrasto in chiaro, poi scuro, poi
+ * contrasto in scuro: quando due media query vincono insieme, l'ultima scritta
+ * decide. Con il blocco di contrasto in fondo, chi chiedeva più contrasto in
+ * modalità scura si ritrovava i grigi del tema chiaro su fondo nero — testo a
+ * 1,4:1, cioè illeggibile, l'opposto di quello che aveva chiesto.
  */
 
 :root {
@@ -30,7 +36,7 @@
   --accent: #1c1c1e;
   --accent-on: #ffffff;
 
-  /* semantico — ammesso SOLO sulla barra dello stato */
+  /* semantico — ammesso SOLO sulla barra dello stato e sugli avvisi d'errore */
   --ok: #248a3d;
   --warn: #b25000;
   --bad: #c9241c;
@@ -41,6 +47,14 @@
   --glass-highlight: rgba(255, 255, 255, 0.9);
 
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --separator: rgba(60, 60, 67, 0.62);
+    --glass-border: rgba(0, 0, 0, 0.5);
+    --label-2: rgba(60, 60, 67, 0.82);
+  }
 }
 
 /* La modalità segue il telefono: non è un'impostazione dell'app. */
@@ -64,18 +78,19 @@
   }
 }
 
-/* iOS 27 adatta il vetro a queste due preferenze: la web app fa lo stesso. */
-@media (prefers-reduced-transparency: reduce) {
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
   :root {
-    --glass: var(--bg);
+    --separator: rgba(235, 235, 245, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.55);
+    --label-2: rgba(235, 235, 245, 0.92);
+    --label-3: rgba(235, 235, 245, 0.6);
   }
 }
 
-@media (prefers-contrast: more) {
+/* iOS 27 adatta il vetro a questa preferenza: la web app fa lo stesso. */
+@media (prefers-reduced-transparency: reduce) {
   :root {
-    --separator: rgba(60, 60, 67, 0.62);
-    --glass-border: rgba(0, 0, 0, 0.5);
-    --label-2: rgba(60, 60, 67, 0.82);
+    --glass: var(--bg);
   }
 }
 
@@ -99,17 +114,6 @@
 
 .ios-group > .ios-cell.has-icon + .ios-cell.has-icon::before {
   left: 56px;
-}
-
-/* Il bordo di scorrimento "duro" di iOS 27: non il gradiente morbido di iOS 26. */
-.scroll-edge {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
 }
 
 html,

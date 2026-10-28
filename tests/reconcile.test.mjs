@@ -80,6 +80,31 @@ test('riconciliare due volte lo stesso ciclo non somma due voci non tracciate', 
   assert.equal(second.coverage, first.coverage);
 });
 
+test('le spese fisse del ciclo contano come tracciate', () => {
+  // Le fisse non sono movimenti: sono configurazione, e computeBudget le ha
+  // gia sottratte in blocco dal libero. Il totale della banca invece le
+  // contiene. Senza passarle a reconcile, lo scostamento ERA l'affitto, e
+  // diventava un movimento libero che il budget sottraeva una seconda volta:
+  // un ciclo in pari si trasformava in "hai finito il budget".
+  const r = reconcile(255000, REGISTERED, CYCLE, 94000);
+  assert.equal(r.gap, 255000 - 161000 - 94000);
+  assert.equal(r.untracked, null);
+  assert.equal(r.coverage, 1);
+});
+
+test('con le fisse dichiarate lo scostamento è solo cio che manca davvero', () => {
+  const r = reconcile(265000, REGISTERED, CYCLE, 94000);
+  assert.equal(r.gap, 10000);
+  assert.equal(r.untracked.amountCents, 10000);
+  assert.equal(r.coverage, 255000 / 265000);
+});
+
+test('senza fisse dichiarate il comportamento resta quello di prima', () => {
+  const r = reconcile(184000, REGISTERED, CYCLE);
+  assert.equal(r.gap, 23000);
+  assert.equal(r.coverage, 161000 / 184000);
+});
+
 test('la copertura non supera mai 1', () => {
   for (const bank of [0, 1, 150000, 161000, 184000]) {
     const { coverage } = reconcile(bank, REGISTERED, CYCLE);
