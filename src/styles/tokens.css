@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * AURA 2 — token delle superfici di sistema.
+ *
+ * Questi valori non sono una tavolozza di marca: sono i grigi e i neri che iOS
+ * usa per i fondi raggruppati e per le carte. È qui che si gioca il "sembra
+ * nativa", più che nell'accento. L'accento è grafite, senza tinta, così verde,
+ * ambra e rosso restano leggibili come responso e non come decorazione.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* superfici */
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --separator: rgba(60, 60, 67, 0.18);
+  --radius-group: 11px;
+  --radius-tile: 7px;
+
+  /* testo */
+  --label: rgba(0, 0, 0, 0.96);
+  --label-2: rgba(60, 60, 67, 0.6);
+  --label-3: rgba(60, 60, 67, 0.3);
+
+  /* accento: inchiostro, non colore */
+  --accent: #1c1c1e;
+  --accent-on: #ffffff;
+
+  /* semantico — ammesso SOLO sulla barra dello stato */
+  --ok: #248a3d;
+  --warn: #b25000;
+  --bad: #c9241c;
+
+  /* vetro iOS 27: bordo definito, nessuna ombra portata */
+  --glass: rgba(248, 248, 250, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+}
+
+/* La modalità segue il telefono: non è un'impostazione dell'app. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --separator: rgba(84, 84, 88, 0.65);
+    --label: rgba(255, 255, 255, 0.96);
+    --label-2: rgba(235, 235, 245, 0.6);
+    --label-3: rgba(235, 235, 245, 0.3);
+    --accent: #f2f2f7;
+    --accent-on: #1c1c1e;
+    --ok: #30d158;
+    --warn: #ff9f0a;
+    --bad: #ff453a;
+    /* in iOS 27 il vetro scuro è più chiaro di prima, così stacca dal fondo */
+    --glass: rgba(28, 28, 30, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-highlight: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* iOS 27 adatta il vetro a queste due preferenze: la web app fa lo stesso. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass: var(--bg);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --separator: rgba(60, 60, 67, 0.62);
+    --glass-border: rgba(0, 0, 0, 0.5);
+    --label-2: rgba(60, 60, 67, 0.82);
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--label);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.022em;
+  -webkit-font-smoothing: antialiased;
+  /* nessun rimbalzo elastico: su una lista raggruppata tradisce il web */
+  overscroll-behavior-y: none;
+}

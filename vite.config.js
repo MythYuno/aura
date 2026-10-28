@@ -18,21 +18,6 @@ export default defineConfig({
     sourcemap: true,
     minify: 'esbuild',
     target: 'es2020',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'framer': ['framer-motion'],
-          'radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-          ],
-        },
-      },
-    },
   },
   server: {
     port: 5173,
