@@ -79,6 +79,39 @@
   }
 }
 
+/**
+ * Separatori della lista raggruppata. Partono dal testo, non dal bordo: 56 px
+ * quando la cella ha l'icona, 16 px quando non ce l'ha. Lo spessore è mezzo
+ * pixel, ottenuto con scaleY — un bordo da 1 px su schermo retina è il doppio
+ * di quello di sistema e si vede.
+ */
+.ios-group > .ios-cell + .ios-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 1px;
+  background: var(--separator);
+  transform: scaleY(0.5);
+  transform-origin: top;
+}
+
+.ios-group > .ios-cell.has-icon + .ios-cell.has-icon::before {
+  left: 56px;
+}
+
+/* Il bordo di scorrimento "duro" di iOS 27: non il gradiente morbido di iOS 26. */
+.scroll-edge {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
 html,
 body,
 #root {
