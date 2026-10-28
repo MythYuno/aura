@@ -28,7 +28,12 @@ export function categoryHistoricalStats(movements, cycle, payDay = 16, nCycles =
   let c = cycle;
   for (let i = 0; i < nCycles; i += 1) {
     c = previousCycle(c, payDay);
-    past.push(sumByCategory(movements, c));
+    const totals = sumByCategory(movements, c);
+    // Un ciclo senza nessun movimento non è un ciclo in cui hai speso zero: è
+    // un ciclo in cui l'app non c'era ancora. Contarlo come zero abbasserebbe
+    // la media e farebbe sembrare ogni categoria cresciuta del triplo a chi
+    // usa AURA da un mese.
+    if (totals.size > 0) past.push(totals);
   }
 
   const ids = new Set(current.keys());

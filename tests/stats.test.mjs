@@ -86,6 +86,35 @@ test('crescita del 25 per cento', () => {
   assert.equal(stats.get('home').deltaPct, 25);
 });
 
+test('la media ignora i cicli in cui non c\'è storia, non li conta come zero', () => {
+  // Chi usa l'app da un mese ha un solo ciclo precedente. Dividere per tre
+  // cicli, due dei quali vuoti perche l'app non esisteva ancora, farebbe
+  // sembrare ogni categoria cresciuta del 275%.
+  const stats = categoryHistoricalStats(
+    [mv('2026-10-20', 10000, 'food'), mv('2026-09-20', 8000, 'food')],
+    CYCLE,
+    16,
+    3
+  );
+  const food = stats.get('food');
+  assert.equal(food.mean, 8000);
+  assert.equal(food.deltaPct, 25);
+});
+
+test('con due cicli di storia su tre richiesti la media è sui due', () => {
+  const stats = categoryHistoricalStats(
+    [
+      mv('2026-10-20', 10000, 'food'),
+      mv('2026-09-20', 8000, 'food'),
+      mv('2026-08-20', 12000, 'food'),
+    ],
+    CYCLE,
+    16,
+    3
+  );
+  assert.equal(stats.get('food').mean, 10000); // (8000 + 12000) / 2
+});
+
 test('i movimenti vincolati non entrano nelle statistiche di categoria', () => {
   const stats = categoryHistoricalStats(
     [mv('2026-10-20', 62000, 'home', { bound: 'fixed' }), mv('2026-10-21', 3000, 'home')],

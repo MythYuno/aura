@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { GlassTabBar } from './ui/GlassTabBar.jsx';
 import { Today } from './screens/Today.jsx';
 import { Afford } from './screens/Afford.jsx';
+import { Cycle } from './screens/Cycle.jsx';
 import { useStore } from './store/useStore.js';
 
 /**
- * Guscio a tre destinazioni. Ciclo e onboarding arrivano ai Task 11-12.
+ * Guscio a tre destinazioni. L'onboarding arriva al Task 12.
  */
 
 export default function App() {
   const [tab, setTab] = useState('today');
   const [asking, setAsking] = useState(false);
-  const { state, storageOk, addMovement } = useStore();
+  const { state, storageOk, addMovement, applyReconcile } = useStore();
 
   return (
     <div className="relative flex h-full flex-col">
@@ -25,9 +26,7 @@ export default function App() {
         {tab === 'today' ? (
           <Today state={state} />
         ) : (
-          <p className="p-5 text-[15px]" style={{ color: 'var(--label-2)' }}>
-            Ciclo
-          </p>
+          <Cycle state={state} onReconcile={applyReconcile} />
         )}
       </main>
 
