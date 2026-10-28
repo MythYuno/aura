@@ -9,3 +9,6 @@ dist
 # personal / local-only files (notes, deploy guides, design previews)
 _local/
 .claude/
+
+# visual brainstorming companion
+.superpowers/

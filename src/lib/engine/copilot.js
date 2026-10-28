@@ -462,6 +462,71 @@ export function askCopilot(question, ctx = {}) {
     return { intent: 'available', text: `Adesso hai ${eur(freeUntilNext)} disponibili da spendere${daysToNextIncome ? ` nei prossimi ${daysToNextIncome} ${daysToNextIncome === 1 ? 'giorno' : 'giorni'}` : ''} — circa ${eur0(dailyQuota)} al giorno.` };
   }
 
+  // 5-bis) DIAGNOSI — "perché ho meno soldi del solito?", "dove sono finiti?"
+  // Non inventa nulla: mette in fila le cause possibili con i numeri che già
+  // esistono e indica la più pesante. Se non trova niente di anomalo lo dice,
+  // invece di cercare un colpevole a tutti i costi.
+  if (has(q, /perch|come mai|dove.*(sono|son).*(finit|andat)|dove.*van|com'è che|spiegami/)) {
+    const cause = [];
+
+    // 1. Il ritmo di spesa rispetto alla media
+    const attesoSett = avgDailySpend > 0 ? avgDailySpend * 7 : 0;
+    if (attesoSett > 0 && spentWeek > attesoSett * 1.25) {
+      const piu = Math.round(((spentWeek - attesoSett) / attesoSett) * 100);
+      cause.push({
+        peso: spentWeek - attesoSett,
+        txt: `negli ultimi 7 giorni hai speso ${eur0(spentWeek)}, il ${piu}% in più del tuo solito`,
+      });
+    }
+
+    // 2. La categoria che sta sopra le altre questo mese
+    if (topCategory && topCategory.spent > 0 && spentMonth > 0) {
+      const quota = Math.round((topCategory.spent / spentMonth) * 100);
+      if (quota >= 40) {
+        cause.push({
+          peso: topCategory.spent * 0.6,
+          txt: `${topCategory.label} da sola vale il ${quota}% del mese (${eur0(topCategory.spent)})`,
+        });
+      }
+    }
+
+    // 3. Pagamenti fissi già tolti dal disponibile
+    if (upcomingMonth > 0) {
+      cause.push({
+        peso: upcomingMonth * 0.5,
+        txt: `${eur0(upcomingMonth)} di pagamenti fissi sono già scalati dal tuo disponibile, anche se non sono ancora usciti`,
+      });
+    }
+
+    // 4. Cuscinetto e risparmio: non sono spariti, sono messi da parte
+    const protetti = (cushion || 0) + (savingsTarget || 0);
+    if (protetti > 0) {
+      cause.push({
+        peso: protetti * 0.4,
+        txt: `${eur0(protetti)} sono protetti fra cuscinetto e risparmio del mese: ci sono, ma non li conto come spendibili`,
+      });
+    }
+
+    if (cause.length === 0) {
+      return {
+        intent: 'diagnosi',
+        text: `Non vedo niente fuori posto: stai spendendo in linea col tuo solito${avgDailySpend > 0 ? ` (${eur0(avgDailySpend)} al giorno)` : ''}. Se il conto ti sembra più leggero, prova "Allinea col conto" dal Piano: se manca qualcosa lo trovo io.`,
+        slots: { intent: 'diagnosi' },
+      };
+    }
+
+    cause.sort((a, b) => b.peso - a.peso);
+    const principale = cause[0].txt;
+    const altre = cause.slice(1, 3).map((c) => c.txt);
+    return {
+      intent: 'diagnosi',
+      text: `Il motivo più pesante: ${principale}.`
+        + (altre.length ? ` Poi conta che ${altre.join(', e che ')}.` : '')
+        + ` In tutto ti restano ${eur(freeUntilNext)}${daysToNextIncome ? ` per ${daysToNextIncome} giorni` : ''}.`,
+      slots: { intent: 'diagnosi' },
+    };
+  }
+
   // 6) AIUTO / SALUTO
   if (has(q, /ciao|aiut|cosa sai|cosa puoi|come funzioni|chi sei/)) {
     return { intent: 'help', text: 'Faccio i conti per te, qui sul telefono. Posso dirti: quanto puoi spendere; quanto hai speso (anche per categoria); una spesa a rate (con anticipo e tasso); quanto avrai sul conto tra mesi o anni; tra quanto raggiungi un obiettivo o quanto mettere via al mese; quando arriva la paga; cosa paghi a breve. Provami: "posso permettermi una macchina da 25 mila a rate in 5 anni al 6%?".' };
